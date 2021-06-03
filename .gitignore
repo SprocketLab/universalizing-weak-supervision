@@ -134,3 +134,4 @@ tmp/results/*
 tmp/checkpoints*
 tmp/synthetic
 data/imdb-tmdb/processed/*
+logs
