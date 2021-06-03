@@ -1,0 +1,310 @@
+data_conf:
+  dataset_name: imdb_tmdb
+  dimension: 5
+  features:
+  - vote_average
+  - Black and White
+  - Color
+  - unknown:color
+  - love
+  - friend
+  - murder
+  - death
+  - police
+  - new york city
+  - high school
+  - unknown:plot_keywords
+  - alien
+  - boy
+  - school
+  - revenge
+  - fbi
+  - drugs
+  - friendship
+  - prison
+  - money
+  - marriage
+  - escape
+  - island
+  - party
+  - dog
+  - wedding
+  - female protagonist
+  - detective
+  - box office flop
+  - sex
+  - rescue
+  - battle
+  - teenager
+  - lawyer
+  - christmas
+  - hospital
+  - serial killer
+  - train
+  - vomiting
+  - cia
+  - scientist
+  - Approved
+  - G
+  - GP
+  - M
+  - NC-17
+  - Not Rated
+  - PG
+  - PG-13
+  - Passed
+  - R
+  - TV-14
+  - TV-G
+  - TV-PG
+  - Unrated
+  - X
+  - unknown:content_rating
+  - missing_homepage
+  - woman_director
+  - independent_film
+  - duringcreditsstinger
+  - based_on_novel
+  - murder.1
+  - aftercreditsstinger
+  - violence
+  - dystopia
+  - sport
+  - revenge.1
+  - sex.1
+  - friendship.1
+  - musical
+  - 3d
+  - biography
+  - teenager.1
+  - sequel
+  - love.1
+  - suspense
+  - new_york
+  - police.1
+  - los_angeles
+  - high_school
+  - alien.1
+  - family
+  - nudity
+  - prison.1
+  - london_england
+  - superhero
+  - drug
+  - dying_and_death
+  - father_son_relationship
+  - remake
+  - daughter
+  - magic
+  - serial_killer
+  - world_war_ii
+  - wedding.1
+  - based_on_comic_book
+  - escape.1
+  - kidnapping
+  - corruption
+  - suicide
+  - friends
+  - hospital.1
+  - time_travel
+  - party.1
+  - martial_arts
+  - af
+  - ar
+  - cn
+  - cs
+  - da
+  - de
+  - el
+  - en
+  - es
+  - fa
+  - fr
+  - he
+  - hi
+  - hu
+  - id
+  - is
+  - it
+  - ja
+  - ko
+  - ky
+  - nb
+  - nl
+  - 'no'
+  - pl
+  - ps
+  - pt
+  - ro
+  - ru
+  - sv
+  - te
+  - th
+  - vi
+  - xx
+  - zh
+  - warner_bros_
+  - universal_pictures
+  - paramount_pictures
+  - twentieth_century_fox_film_corporation
+  - columbia_pictures
+  - new_line_cinema
+  - metro_goldwyn_mayer__mgm_
+  - touchstone_pictures
+  - walt_disney_pictures
+  - relativity_media
+  - columbia_pictures_corporation
+  - miramax_films
+  - village_roadshow_pictures
+  - dreamworks_skg
+  - united_artists
+  - canal_
+  - regency_enterprises
+  - fox_searchlight_pictures
+  - dune_entertainment
+  - lionsgate
+  - tristar_pictures
+  - fox_2000_pictures
+  - summit_entertainment
+  - working_title_films
+  - count_production_countries
+  - year
+  - Apr
+  - Aug
+  - Dec
+  - Feb
+  - Jan
+  - Jul
+  - Jun
+  - Mar
+  - May
+  - Nov
+  - Oct
+  - Sep
+  - Fri
+  - Mon
+  - Sat
+  - Sun
+  - Thu
+  - Tue
+  - Wed
+  - count_spoken_langueges
+  - Post Production
+  - Released
+  - Rumored
+  - Robert De Niro
+  - Morgan Freeman
+  - Johnny Depp
+  - Bruce Willis
+  - Matt Damon
+  - Steve Buscemi
+  - Bill Murray
+  - Liam Neeson
+  - Nicolas Cage
+  - Brad Pitt
+  - Denzel Washington
+  - Will Ferrell
+  - J.K. Simmons
+  - Anthony Hopkins
+  - Tom Cruise
+  - Jim Broadbent
+  - Scarlett Johansson
+  - Harrison Ford
+  - James Franco
+  - Christian Bale
+  - Robert Downey Jr.
+  - Tom Hanks
+  - Julia Roberts
+  - Sylvester Stallone
+  - Tom Wilkinson
+  - Robin Williams
+  - Meryl Streep
+  - Matthew McConaughey
+  - action
+  - adventure
+  - animation
+  - comedy
+  - crime
+  - documentary
+  - drama
+  - family.1
+  - fantasy
+  - foreign
+  - history
+  - horror
+  - music
+  - mystery
+  - romance
+  - science_fiction
+  - thriller
+  - tv_movie
+  - war
+  - western
+  - num_critic_for_reviews
+  - duration
+  - director_facebook_likes
+  - gross
+  - num_voted_users
+  - cast_total_facebook_likes
+  - facenumber_in_poster
+  - num_user_for_reviews
+  - budget_imdb
+  - title_year
+  - aspect_ratio
+  - movie_facebook_likes
+  - budget_tmdb
+  - popularity
+  - revenue
+  - runtime
+  - vote_count
+  - actor_facebook_likes
+  highest_first: true
+  label_feature: vote_average
+  n_test: 500
+  n_train: 100
+  processed_data_path: data/imdb-tmdb/processed/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
+  raw_data_path: data/imdb-tmdb/merged_imdb_tmdb_with_additional_features.csv
+  recreate_if_exists: true
+  seed: 0
+l2r_training_conf:
+  debug: true
+  epochs: 5
+  learning_rate: 0.01
+  model: ListMLE
+  model_checkpoint: tmp/checkpoints/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
+  optimizer: sgd
+  test_batch_size: 64
+  train_batch_size: 64
+  use_weak_labels: True
+  weight_decay: 0.0001
+log_file: tmp/logs/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False.log
+project_root: ../../../../
+results_path: tmp/results/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
+weak_sup_conf:
+  p: null
+  checkpoint_path: data/imdb-tmdb/processed/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False/LFs
+  inference_rule: weighted_kemeny
+  lf_features:
+  - revenue
+  - gross
+  - runtime
+  - popularity
+  - movie_facebook_likes
+  - cast_total_facebook_likes
+  - num_user_for_reviews
+  - director_facebook_likes
+  - actor_facebook_likes
+  - budget_tmdb
+  lf_features_highest_first_flag:
+  - true
+  - true
+  - true
+  - true
+  - true
+  - true
+  - true
+  - true
+  - true
+  synthetic: true
+  recreate_if_exists: true
+  train_method: triplet_opt
