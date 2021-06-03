@@ -1,0 +1,19 @@
+name: ws-cardinality
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pytorch::pytorch=1.6.0
+  - python=3.6.8
+  - jupyter
+  - pandas
+  - scipy
+  - pytorch
+  - scikit-learn
+  - tqdm
+  - pytorch
+  - munkres
+  - networkx
+  - pyyaml
+  - matplotlib
