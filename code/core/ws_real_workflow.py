@@ -99,9 +99,9 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
     else:
         weak_label_file_path = os.path.join(weak_label_path, WEAK_LABEL_FILE_NAME)
 
-    if (weak_sup_conf['recreate_if_exists']) or (not os.path.exists(weak_label_path)):
+    if (weak_sup_conf['recreate_if_exists']) or (not os.path.exists(weak_label_file_path)):
         if not os.path.exists(weak_label_path):
-            os.makedirs(weak_label_path)
+            os.makedirs(weak_label_path, exist_ok=True)
 
         # generate weak labels
         if weak_sup_conf.get('synthetic') is True:
