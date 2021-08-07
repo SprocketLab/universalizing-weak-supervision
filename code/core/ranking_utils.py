@@ -406,6 +406,11 @@ class RankingUtils:
         for i, perm in enumerate(full_perms):
             perm2int_map[perm] = i
             int2perm_map[i] = [int(num) for num in perm]
+
+        # set outputs
+        self.perm2int_map = perm2int_map
+        self.int2perm_map = int2perm_map
+
         return perm2int_map, int2perm_map
 
     def perm2int(self, lstRanks):
