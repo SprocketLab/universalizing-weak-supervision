@@ -158,13 +158,14 @@ class LTREvaluator():
 
     def set_and_load_data(self, X_train, X_test, Y_train, Y_test,
                           eval_dict, data_dict,
+                          qid_train=None, qid_test=None,
                           root_path = '.',
                           file_train='train.npz',
                           file_test='test.npz',
                           file_vali=None):
 
-        # Convert them into numpy with qid
-        X_train, X_test, Y_train, Y_test = X_train.numpy(), X_test.numpy(), Y_train.numpy(), Y_test.numpy()
+        if type(X_train) != np.ndarray:
+            X_train, X_test, Y_train, Y_test = X_train.numpy(), X_test.numpy(), Y_train.numpy(), Y_test.numpy()
         qid_train = np.array(list(range(X_train.shape[0])))
         qid_test = np.array(list(range(X_test.shape[0]))) + X_train.shape[0]  # sum to prevent duplication
 
@@ -173,6 +174,9 @@ class LTREvaluator():
         if not os.path.exists(save_path):
             os.makedirs(save_path)
             print("processed data path", save_path, "generated")
+
+        print('set_and_load_data in LTREvaluator')
+        print(X_train.shape, Y_train.shape, qid_train.shape)
         np.savez(os.path.join(save_path, file_train), X=X_train, Y=Y_train, qid=qid_train)
         np.savez(os.path.join(save_path, file_test), X=X_test, Y=Y_test, qid=qid_test)
 
@@ -535,6 +539,7 @@ class LTREvaluator():
         for i in range(epochs):
             epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
             for qid, batch_rankings, batch_stds in train_data:
+                print(qid)
                 print('batch_rankings, batch_stds', batch_rankings.shape, batch_stds.shape)
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
@@ -611,10 +616,10 @@ class LTREvaluator():
         list_train_tau = []
         list_test_tau = []
         # # TODO: metric selection based on configuration
-        list_train_ndcg20 = []
-        list_test_ndcg20 = []
-        list_train_p20 = []
-        list_test_p20 = []
+        list_train_ndcg1 = []
+        list_test_ndcg1 = []
+        list_train_p1 = []
+        list_test_p1 = []
         epochs = eval_dict['epochs']
 
         label_type = LABEL_TYPE.Permutation
@@ -622,15 +627,19 @@ class LTREvaluator():
 
         for i in range(epochs):
             epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
+            qid_count = 0
             for qid, batch_rankings, batch_stds in train_data:
                 # print('qid', qid, 'batch_rankings', batch_rankings.shape, 'batch_stds', batch_stds.shape)
+                # print(batch_stds)
                 # print(batch_stds)
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
                 epoch_loss += batch_loss.item()
 
-                # if int(qid) > 10000: # temp for testing TODO: remove it
-                #     break
+                qid_count += 1
+
+                if int(qid_count) > 100: # tmp for testing
+                    break
 
             np_epoch_loss = epoch_loss.cpu().numpy() if self.gpu else epoch_loss.data.numpy()
             list_losses.append(np_epoch_loss)
@@ -645,28 +654,28 @@ class LTREvaluator():
             list_train_tau.append(train_tau)
 
             # ndcg metrics
-            train_ndcg20 = ndcg_at_k(ranker=ranker, test_data=train_data, k=20,
+            train_ndcg1 = ndcg_at_k(ranker=ranker, test_data=train_data, k=1,
                                     label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
 
-            test_ndcg20 = ndcg_at_k(ranker=ranker, test_data=test_data, k=20,
+            test_ndcg1 = ndcg_at_k(ranker=ranker, test_data=test_data, k=1,
                                     label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
 
-            list_train_ndcg20.append(train_ndcg20)
-            list_test_ndcg20.append(test_ndcg20)
+            list_train_ndcg1.append(train_ndcg1)
+            list_test_ndcg1.append(test_ndcg1)
 
             # precion metrics
-            train_p20 = precision_at_k(ranker=ranker, test_data=train_data, k=20,
+            train_p1 = precision_at_k(ranker=ranker, test_data=train_data, k=1,
                                     label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
-            test_p20 = precision_at_k(ranker=ranker, test_data=test_data, k=20,
+            test_p1 = precision_at_k(ranker=ranker, test_data=test_data, k=1,
                                        label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
 
-            list_train_p20.append(train_p20)
-            list_test_p20.append(test_p20)
+            list_train_p1.append(train_p1)
+            list_test_p1.append(test_p1)
 
             if (verbose == 1):
                 print(f"epoch {i}, loss {np_epoch_loss}, train tau {train_tau}, test_tau {test_tau},"
-                      f"train_ndcg@20 {train_ndcg20}, test_ndcg@20 {test_ndcg20}"
-                      f"train_p@20 {train_p20}, test_p@20, {test_p20}")
+                      f"train_ndcg@1 {train_ndcg1}, test_ndcg@1 {test_ndcg1}"
+                      f"train_p@1 {train_p1}, test_p@1, {test_p1}")
 
         test_tau = np.vstack(list_test_tau)
         train_tau = np.vstack(list_train_tau)
@@ -675,10 +684,10 @@ class LTREvaluator():
         result_summary['loss'] = list_losses
         result_summary['train_tau'] = train_tau
         result_summary['test_tau'] = test_tau
-        result_summary['train_ndcg20'] = list_train_ndcg20
-        result_summary['test_ndcg20'] = list_test_ndcg20
-        result_summary['train_p20'] = list_train_p20
-        result_summary['test_p20'] = list_test_p20
+        result_summary['train_ndcg1'] = list_train_ndcg1
+        result_summary['test_ndcg1'] = list_test_ndcg1
+        result_summary['train_p1'] = list_train_p1
+        result_summary['test_p1'] = list_test_p1
 
         return ranker, result_summary
 

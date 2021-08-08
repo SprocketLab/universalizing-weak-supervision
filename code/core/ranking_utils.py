@@ -2,6 +2,7 @@ import random
 import copy
 import numpy as np
 import itertools
+import torch
 from scipy.stats import kendalltau
 from collections.abc import Sequence
 from ranking_digraph import RankingDiGraph
@@ -519,3 +520,52 @@ class Ranking(Sequence):
 
         # self.mask_permutation: zero mask based on whether included or not
         self.mask_permutation = [[0]*len(lst1)] + [[1]*len(lst_items)]
+
+
+def perm2ranking(Y, d):
+    """
+    Convert permutation ranking
+    In permutation, (2, 0, 1) means top ranking is placed at feature index 2, the second ranking is placed
+    at feature index 0, so on.
+    In ranking, (2, 0, 1) means first feature index has the ranking 2,
+    the second index has the ranking 0 (top ranking), so on.
+    By inverting them, make a proper label for learning to rank
+
+    Parameters
+    ----------
+    Y
+
+    Returns
+    -------
+
+    """
+    # permutation to ranking
+    Y_perm = [y.permutation for y in Y]
+
+    # make invert dictionary
+    Y_ranking = []
+    for i in range(len(Y_perm)):
+        invert_pairs = zip(Y_perm[i], range(d))  # the dict of index -> ranking
+
+        # sort based on index
+        sorted_invert_pairs = sorted(invert_pairs, key=lambda x: x[0])
+        y_ranking = [ranking for idx, ranking in sorted_invert_pairs]
+        Y_ranking.append(y_ranking)
+
+    return Y_ranking
+
+
+def ranking_to_score(Y, d, highest_first):
+    """
+
+    Returns
+    -------
+
+    """
+    Y_ranking = perm2ranking(Y, d)
+    Y_ranking_torch = torch.tensor(Y_ranking, dtype=float).float()
+    if highest_first:
+        Y_score_torch = d - Y_ranking_torch  # reverse the ranking for scoring
+    else:
+        Y_score_torch = Y_ranking_torch
+    return Y_score_torch
