@@ -132,15 +132,9 @@ def precision_at_k(ranker=None, test_data=None, k=20, label_type=LABEL_TYPE.Mult
         batch_rele_preds = ranker.predict(batch_ranking)
         if gpu: batch_rele_preds = batch_rele_preds.cpu()
 
-        _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=True)
+        _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=False)
 
-        batch_sys_sorted_labels = torch.gather(batch_labels, dim=1, index=batch_sorted_inds)
-        if already_sorted:
-            batch_ideal_sorted_labels = batch_labels
-        else:
-            batch_ideal_sorted_labels, _ = torch.sort(batch_labels, dim=1, descending=True)
-
-        batch_precision_at_k = torch_precision_at_k(batch_sys_sorted_labels=batch_sys_sorted_labels, k = k)
+        batch_precision_at_k = torch_precision_at_k(batch_sys_sorted_labels=batch_sorted_inds, k = k)
 
         sum_precision_at_k += torch.sum(batch_precision_at_k)
         cnt += batch_precision_at_k.shape[0]
