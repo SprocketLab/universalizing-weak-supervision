@@ -75,7 +75,7 @@ class NeuralRanker(AbstractNeuralRanker):
 
         return ffnns
 
-    def ini_ffnns(self, num_features=None, h_dim=100, out_dim=1, num_layers=3, HD_AF='R', HN_AF='R', TL_AF='S',
+    def ini_ffnns(self, num_features=None, h_dim=25, out_dim=1, num_layers=3, HD_AF='R', HN_AF='R', TL_AF='S',
                   apply_tl_af=True, BN=True, RD=False, FBN=False):
         '''
         Initialization of a feed-forward neural network
