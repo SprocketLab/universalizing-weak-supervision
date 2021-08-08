@@ -116,3 +116,34 @@ def kendall_tau(ranker=None, test_data=None, label_type=LABEL_TYPE.MultiLabel, g
             tau_list.extend(kendall_tau_list)
     avg_kendall_tau = torch.mean(torch.tensor(tau_list))
     return avg_kendall_tau
+
+def precision_at_k(ranker=None, test_data=None, k=20, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
+    '''
+    There is no check based on the assumption (say light_filtering() is called) that each test instance Q includes at least k documents,
+    and at least one relevant document. Or there will be errors.
+    '''
+    sum_precision_at_k = torch.zeros(1)
+    cnt = torch.zeros(1)
+    already_sorted = True if test_data.presort else False
+    for qid, batch_ranking, batch_labels in test_data: # _, [batch, ranking_size, num_features], [batch, ranking_size]
+        if batch_labels.size(1) < k: continue # skip the query if the number of associated documents is smaller than k
+
+        if gpu: batch_ranking = batch_ranking.to(device)
+        batch_rele_preds = ranker.predict(batch_ranking)
+        if gpu: batch_rele_preds = batch_rele_preds.cpu()
+
+        _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=True)
+
+        batch_sys_sorted_labels = torch.gather(batch_labels, dim=1, index=batch_sorted_inds)
+        if already_sorted:
+            batch_ideal_sorted_labels = batch_labels
+        else:
+            batch_ideal_sorted_labels, _ = torch.sort(batch_labels, dim=1, descending=True)
+
+        batch_precision_at_k = torch_precision_at_k(batch_sys_sorted_labels=batch_sys_sorted_labels, k = k)
+
+        sum_precision_at_k += torch.sum(batch_precision_at_k)
+        cnt += batch_precision_at_k.shape[0]
+
+    avg_precision_at_k = sum_precision_at_k/cnt
+    return  avg_precision_at_k
