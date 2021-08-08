@@ -52,6 +52,7 @@ Newly introduced dataset in this research, which includes TMDB and IMDB dataset
 IMDB        = ["IMDB_TMDB"]
 SYNTHETIC   = ["SYNTHETIC"]
 BOARDGAME   = ["BOARD-GAMES"]
+MODIFIED_MSLR_WEB10K = ['MODIFIED_MSLR_WEB10K']
 
 """
 GLTR refers to General Learning-to-rank, thus
@@ -192,7 +193,14 @@ def get_data_meta(data_id=None):
         num_features = None  ## Bad coding (TODO: fix it) - num_features will be updated in get_default_data_dict
         has_comment = False
         fold_num = 1
+    elif (data_id.upper() in MODIFIED_MSLR_WEB10K):
+        max_rele_level = None
+        label_type = LABEL_TYPE.Permutation
+        num_features = None  ## Bad coding (TODO: fix it) - num_features will be updated in get_default_data_dict
+        has_comment = False
+        fold_num = 1
     else:
+        print('data_id', data_id)
         raise NotImplementedError
 
     data_meta = dict(num_features=num_features, has_comment=has_comment, label_type=label_type,
@@ -716,7 +724,7 @@ class LTRDataset(data.Dataset):
                     pickle_save(self.list_torch_Qs, torch_perquery_file)
 
         elif ((data_dict['data_id'].upper() in IMDB) or (data_dict['data_id'].upper() in SYNTHETIC) or
-            (data_dict['data_id'].upper() in BOARDGAME)):
+            (data_dict['data_id'].upper() in BOARDGAME) or (data_dict['data_id'].upper() in MODIFIED_MSLR_WEB10K)):
             if data_dict['dir_data'] not in file:
                 data_path = os.path.join(data_dict['dir_data'], file)
             else:
