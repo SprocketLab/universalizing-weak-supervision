@@ -17,7 +17,7 @@ from ptranking.base.ranker import LTRFRAME_TYPE
 from ptranking.utils.bigdata.BigPickle import pickle_save
 from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.data.data_utils import get_data_meta, SPLIT_TYPE, LABEL_TYPE
-from ptranking.ltr_adhoc.eval.eval_utils import ndcg_at_ks, ndcg_at_k, kendall_tau
+from ptranking.ltr_adhoc.eval.eval_utils import ndcg_at_ks, ndcg_at_k, kendall_tau, precision_at_k
 from ptranking.data.data_utils import LTRDataset, YAHOO_LTR, ISTELLA_LTR, MSLETOR_SEMI, MSLETOR_LIST, IMDB, SYNTHETIC, BOARDGAME
 from ptranking.ltr_adhoc.eval.parameter import ModelParameter, DataSetting, EvalSetting, ScoringFunctionParameter
 
@@ -482,6 +482,7 @@ class LTREvaluator():
         for i in range(epochs):
             epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
             for qid, batch_rankings, batch_stds in train_data:
+                # print(qid, ba)
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
                 epoch_loss += batch_loss.item()
@@ -534,7 +535,7 @@ class LTREvaluator():
         for i in range(epochs):
             epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
             for qid, batch_rankings, batch_stds in train_data:
-                # print('batch_rankings, batch_stds in imdb_train', batch_rankings.shape, batch_stds.shape)
+                print('batch_rankings, batch_stds', batch_rankings.shape, batch_stds.shape)
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
                 epoch_loss += batch_loss.item()
@@ -589,6 +590,95 @@ class LTREvaluator():
         result_summary['test_ndcg1'] = list_test_ndcg1
         result_summary['test_ndcg3'] = list_test_ndcg3
         result_summary['test_ndcg5'] = list_test_ndcg5
+
+        return ranker, result_summary
+
+    def custom_train_ir(self, ranker, eval_dict, verbose, train_data=None, test_data=None):
+        """
+        A simple train and test, namely train based on training data & test based on testing data
+        :param ranker:
+        :param eval_dict:
+        :param train_data:
+        :param test_data:
+        :param vali_data:
+        :return:
+        """
+
+        assert train_data is not None
+        assert test_data  is not None
+
+        list_losses = []
+        list_train_tau = []
+        list_test_tau = []
+        # # TODO: metric selection based on configuration
+        list_train_ndcg20 = []
+        list_test_ndcg20 = []
+        list_train_p20 = []
+        list_test_p20 = []
+        epochs = eval_dict['epochs']
+
+        label_type = LABEL_TYPE.Permutation
+
+
+        for i in range(epochs):
+            epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
+            for qid, batch_rankings, batch_stds in train_data:
+                # print('qid', qid, 'batch_rankings', batch_rankings.shape, 'batch_stds', batch_stds.shape)
+                # print(batch_stds)
+                if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
+                batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
+                epoch_loss += batch_loss.item()
+
+                # if int(qid) > 10000: # temp for testing TODO: remove it
+                #     break
+
+            np_epoch_loss = epoch_loss.cpu().numpy() if self.gpu else epoch_loss.data.numpy()
+            list_losses.append(np_epoch_loss)
+
+            test_tau = (1 - kendall_tau(ranker=ranker, test_data=test_data, label_type=label_type,
+                                   gpu=self.gpu, device=self.device,)) / 2
+
+            train_tau = (1 - kendall_tau(ranker=ranker, test_data=train_data, label_type=label_type,
+                                   gpu=self.gpu, device=self.device, )) / 2
+
+            list_test_tau.append(test_tau)
+            list_train_tau.append(train_tau)
+
+            # ndcg metrics
+            train_ndcg20 = ndcg_at_k(ranker=ranker, test_data=train_data, k=20,
+                                    label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+
+            test_ndcg20 = ndcg_at_k(ranker=ranker, test_data=test_data, k=20,
+                                    label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+
+            list_train_ndcg20.append(train_ndcg20)
+            list_test_ndcg20.append(test_ndcg20)
+
+            # precion metrics
+            train_p20 = precision_at_k(ranker=ranker, test_data=train_data, k=20,
+                                    label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+            test_p20 = precision_at_k(ranker=ranker, test_data=test_data, k=20,
+                                       label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+
+            list_train_p20.append(train_p20)
+            list_test_p20.append(test_p20)
+
+            if (verbose == 1):
+                print(f"epoch {i}, loss {np_epoch_loss}, train tau {train_tau}, test_tau {test_tau},"
+                      f"train_ndcg@20 {train_ndcg20}, test_ndcg@20 {test_ndcg20}"
+                      f"train_p@20 {train_p20}, test_p@20, {test_p20}")
+
+        test_tau = np.vstack(list_test_tau)
+        train_tau = np.vstack(list_train_tau)
+
+        result_summary = {}
+        result_summary['loss'] = list_losses
+        result_summary['train_tau'] = train_tau
+        result_summary['test_tau'] = test_tau
+        result_summary['train_ndcg20'] = list_train_ndcg20
+        result_summary['test_ndcg20'] = list_test_ndcg20
+        result_summary['train_p20'] = list_train_p20
+        result_summary['test_p20'] = list_test_p20
 
         return ranker, result_summary
 
