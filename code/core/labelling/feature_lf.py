@@ -10,7 +10,7 @@ class FeatureRankingLF(AbstractRankingLF):
         k = len(lst_feature_map)
         lst_id_f_val = [(i,lst_feature_map[i][self.rank_on_feature]) for i in range(k) ]
         out = sorted(lst_id_f_val, key = lambda x: x[1], reverse=self.highest_first)
-        out = Ranking([i for i,v in out],self.r_utils)
+        out = Ranking([i for i,v in out], self.r_utils)
         return out
 
     def apply_mat(self, X):
