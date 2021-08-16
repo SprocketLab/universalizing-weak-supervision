@@ -211,46 +211,13 @@ class BoardGameRankingDataset:
 
         return X_train, X_test, Y_train, Y_test
 
-    def _ranking_to_score(self, Y):
+    def _ranking_to_score(self, Y, highest_first=False):
         """
 
         Returns
         -------
 
         """
-        Y_ranking = self.perm2ranking(Y)
-        Y_ranking_torch = torch.tensor(Y_ranking, dtype=float).float()
-        Y_score_torch = self.d - Y_ranking_torch  # reverse the ranking for scoring
+
+        Y_score_torch = ranking_to_score(Y, d, highest_first)
         return Y_score_torch
-
-    def perm2ranking(self, Y):
-        """
-        Convert permutation ranking
-        In permutation, (2, 0, 1) means top ranking is placed at feature index 2, the second ranking is placed
-        at feature index 0, so on.
-        In ranking, (2, 0, 1) means first feature index has the ranking 2,
-        the second index has the ranking 0 (top ranking), so on.
-        By inverting them, make a proper label for learning to rank
-
-        Parameters
-        ----------
-        Y
-
-        Returns
-        -------
-
-        """
-        # permutation to ranking
-        Y_perm = [y.permutation for y in Y]
-
-        # make invert dictionary
-        Y_ranking = []
-        for i in range(len(Y_perm)):
-            invert_pairs = zip(Y_perm[i], range(self.d))  # the dict of index -> ranking
-
-            # sort based on index
-            sorted_invert_pairs = sorted(invert_pairs, key=lambda x: x[0])
-            y_ranking = [ranking for idx, ranking in sorted_invert_pairs]
-            Y_ranking.append(y_ranking)
-
-        return Y_ranking
