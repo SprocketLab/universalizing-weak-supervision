@@ -539,8 +539,9 @@ class LTREvaluator():
         for i in range(epochs):
             epoch_loss = torch.zeros(1).to(self.device) if self.gpu else torch.zeros(1)
             for qid, batch_rankings, batch_stds in train_data:
-                print(qid)
-                print('batch_rankings, batch_stds', batch_rankings.shape, batch_stds.shape)
+                # print(qid)
+                # print('batch_rankings, batch_stds', batch_rankings.shape, batch_stds.shape)
+                # print(batch_rankings)
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
                 epoch_loss += batch_loss.item()
@@ -631,15 +632,14 @@ class LTREvaluator():
             for qid, batch_rankings, batch_stds in train_data:
                 # print('qid', qid, 'batch_rankings', batch_rankings.shape, 'batch_stds', batch_stds.shape)
                 # print(batch_stds)
-                # print(batch_stds)
+                
                 if self.gpu: batch_rankings, batch_stds = batch_rankings.to(self.device), batch_stds.to(self.device)
                 batch_loss, stop_training = ranker.train(batch_rankings, batch_stds, qid=qid)
                 epoch_loss += batch_loss.item()
 
                 qid_count += 1
-
-                if int(qid_count) > 100: # tmp for testing
-                    break
+                # if int(qid_count) > 100: # tmp for testing
+                #     break
 
             np_epoch_loss = epoch_loss.cpu().numpy() if self.gpu else epoch_loss.data.numpy()
             list_losses.append(np_epoch_loss)
@@ -690,6 +690,43 @@ class LTREvaluator():
         result_summary['test_p1'] = list_test_p1
 
         return ranker, result_summary
+
+    def eval_with_pred(self, pred, eval_dict, verbose, train_data=None, test_data=None):
+        """
+        A simple train and test, namely train based on training data & test based on testing data
+        :param ranker:
+        :param eval_dict:
+        :param train_data:
+        :param test_data:
+        :param vali_data:
+        :return:
+        """
+
+        assert train_data is not None
+        assert test_data  is not None
+
+        label_type = LABEL_TYPE.Permutation
+
+        test_tau = (1 - kendall_tau(pred=pred, test_data=test_data, label_type=label_type,
+                                   gpu=self.gpu, device=self.device,)) / 2
+
+        test_ndcg1 = ndcg_at_k(pred=pred, test_data=test_data, k=1,
+                                label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+
+        test_p1 = precision_at_k(pred=pred, test_data=test_data, k=1,
+                                       label_type=LABEL_TYPE.Permutation, gpu=self.gpu, device=self.device)
+
+        if (verbose == 1):
+            print(f"test_tau {test_tau},"
+                  f"test_ndcg@1 {test_ndcg1}"
+                  f"test_p@1, {test_p1}")
+
+        result_summary = {}
+        result_summary['test_tau'] = test_tau
+        result_summary['test_ndcg1'] = test_ndcg1
+        result_summary['test_p1'] = test_p1
+
+        return result_summary
 
     def set_data_setting(self, data_json=None, debug=False, data_id=None, dir_data=None):
         if data_json is not None:
