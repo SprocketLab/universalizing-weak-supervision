@@ -35,7 +35,6 @@ def generate_synthetic_LFs(Y, m, p=None, min_theta=0, max_theta=1.0):
     thetas = np.random.uniform(min_theta, max_theta, m)
     thetas = np.sort(thetas)
 
-    print('Generating synthetic LFs...', 'thetas:', thetas, 'p:', p)
     L = sample_mallows_LFs(Y, m, thetas, p)
     return L
 
@@ -87,7 +86,7 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
     lf_features = weak_sup_conf['lf_features']
     lf_features_flags = weak_sup_conf['lf_features_highest_first_flag']
 
-    lst_lfs = [FeatureRankingLF(feature,d,highest_first_flag) 
+    lst_lfs = [FeatureRankingLF(feature, d, highest_first_flag)
                         for feature,highest_first_flag in zip(lf_features,lf_features_flags)]
 
     root_path = dataset.data_conf['project_root']
