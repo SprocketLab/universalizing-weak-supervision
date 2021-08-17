@@ -55,7 +55,7 @@ def generate_LFs(dataset, lst_labeling_functions):
     for i in range(n):
         l = []
         for lf in lst_labeling_functions:
-            l.append(lf.apply(dataset.lst_feature_map[i]))
+            l.append(lf.apply(dataset.lst_ref_map[i]))
         L.append(l)
     
     return L
