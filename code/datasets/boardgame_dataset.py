@@ -65,14 +65,16 @@ class BoardGameRankingDataset:
             self.lst_id_train, self.lst_id_test = train_test_split(self.lst_id,
                                                                    train_size=train_fraction,
                                                                    random_state=self.seed)
-            self.X_train, self.Y_train, self.lst_feature_map_train = self._create_samples(self.lst_id_train,
+            self.X_train, self.Y_train, self.lst_feature_map_train, self.lst_ref_map_train = self._create_samples(self.lst_id_train,
                                                                                           train=True)
-            self.X_test, self.Y_test, self.lst_feature_map_test = self._create_samples(self.lst_id_test,
+            self.X_test, self.Y_test, self.lst_feature_map_test, self.lst_ref_map_test = self._create_samples(self.lst_id_test,
                                                                                        train=False)
             dict_to_dump = {'lst_id_train': self.lst_id_train,
                             'lst_id_test': self.lst_id_test,
                             'lst_feature_map_train': self.lst_feature_map_train,
                             'lst_feature_map_test': self.lst_feature_map_test,
+                            'lst_ref_map_train': self.lst_ref_map_train,
+                            'lst_ref_map_test': self.lst_ref_map_test,
                             'X_train': self.X_train,
                             'Y_train': self.Y_train,
                             'X_test': self.X_test,
@@ -87,6 +89,7 @@ class BoardGameRankingDataset:
         self.X = np.vstack((self.X_train, self.X_test))
         self.Y = self.Y_train + self.Y_test
         self.lst_feature_map = self.lst_feature_map_train + self.lst_feature_map_test
+        self.lst_ref_map = self.lst_ref_map_train + self.lst_ref_map_test
 
     def _create_samples(self, lst_id_sets, train):
         """
@@ -104,6 +107,8 @@ class BoardGameRankingDataset:
         Y = []
         lst_id_map = []
         lst_feature_map = []
+        lst_ref_map = []
+
         bd = self.base_dataset
 
         np.random.seed(self.seed)
@@ -117,8 +122,10 @@ class BoardGameRankingDataset:
         # generate features & labels of item sets
         for i in range(n):
             sel_idcs = np.random.choice(lst_id_sets, self.d, replace=False)
-            f_map = [bd.get_feature_map(idx) for idx in sel_idcs]
             id_map = dict(zip(sel_idcs, range(self.d)))
+            f_map = [bd.get_feature_map(idx) for idx in sel_idcs]
+            ref_map = [bd.get_ref_map(idx) for idx in sel_idcs]
+            
 
             y_ = [(id_map[idx], bd.get_label(idx)) for idx in sel_idcs]
             y_ = sorted(y_, key=lambda x: x[1], reverse=self.highest_first)
@@ -127,8 +134,10 @@ class BoardGameRankingDataset:
             Y.append(Ranking(y, self.r_utils))
             lst_id_map.append(id_map)
             lst_feature_map.append(f_map)
+            lst_ref_map.append(ref_map)
+
         X = self._feature_map_to_np_array(lst_feature_map, n)
-        return X, Y, lst_feature_map
+        return X, Y, lst_feature_map, lst_ref_map
 
     def _set_sample_pickle(self, dict_pickle):
         """
@@ -211,46 +220,13 @@ class BoardGameRankingDataset:
 
         return X_train, X_test, Y_train, Y_test
 
-    def _ranking_to_score(self, Y):
+    def _ranking_to_score(self, Y, highest_first=False):
         """
 
         Returns
         -------
 
         """
-        Y_ranking = self.perm2ranking(Y)
-        Y_ranking_torch = torch.tensor(Y_ranking, dtype=float).float()
-        Y_score_torch = self.d - Y_ranking_torch  # reverse the ranking for scoring
+
+        Y_score_torch = ranking_to_score(Y, d, highest_first)
         return Y_score_torch
-
-    def perm2ranking(self, Y):
-        """
-        Convert permutation ranking
-        In permutation, (2, 0, 1) means top ranking is placed at feature index 2, the second ranking is placed
-        at feature index 0, so on.
-        In ranking, (2, 0, 1) means first feature index has the ranking 2,
-        the second index has the ranking 0 (top ranking), so on.
-        By inverting them, make a proper label for learning to rank
-
-        Parameters
-        ----------
-        Y
-
-        Returns
-        -------
-
-        """
-        # permutation to ranking
-        Y_perm = [y.permutation for y in Y]
-
-        # make invert dictionary
-        Y_ranking = []
-        for i in range(len(Y_perm)):
-            invert_pairs = zip(Y_perm[i], range(self.d))  # the dict of index -> ranking
-
-            # sort based on index
-            sorted_invert_pairs = sorted(invert_pairs, key=lambda x: x[0])
-            y_ranking = [ranking for idx, ranking in sorted_invert_pairs]
-            Y_ranking.append(y_ranking)
-
-        return Y_ranking

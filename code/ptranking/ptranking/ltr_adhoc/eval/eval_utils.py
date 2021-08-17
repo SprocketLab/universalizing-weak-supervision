@@ -11,7 +11,7 @@ import numpy as np
 from ptranking.data.data_utils import LABEL_TYPE
 from ptranking.metric.adhoc_metric import torch_nDCG_at_k, torch_nDCG_at_ks, torch_kendall_tau, torch_precision_at_k
 
-def ndcg_at_k(ranker=None, test_data=None, k=10, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
+def ndcg_at_k(pred=None, ranker=None, test_data=None, k=10, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
     '''
     There is no check based on the assumption (say light_filtering() is called) that each test instance Q includes at least k documents,
     and at least one relevant document. Or there will be errors.
@@ -19,11 +19,16 @@ def ndcg_at_k(ranker=None, test_data=None, k=10, label_type=LABEL_TYPE.MultiLabe
     sum_ndcg_at_k = torch.zeros(1)
     cnt = torch.zeros(1)
     already_sorted = True if test_data.presort else False
-    for qid, batch_ranking, batch_labels in test_data: # _, [batch, ranking_size, num_features], [batch, ranking_size]
+
+    for i, (qid, batch_ranking, batch_labels) in enumerate(test_data): # _, [batch, ranking_size, num_features], [batch, ranking_size]
         if batch_labels.size(1) < k: continue # skip the query if the number of associated documents is smaller than k
 
         if gpu: batch_ranking = batch_ranking.to(device)
-        batch_rele_preds = ranker.predict(batch_ranking)
+
+        if (ranker is None) and (pred is not None):
+            batch_rele_preds = pred[i].unsqueeze(dim=0)
+        else:
+            batch_rele_preds = ranker.predict(batch_ranking)
         if gpu: batch_rele_preds = batch_rele_preds.cpu()
 
         _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=True)
@@ -44,7 +49,7 @@ def ndcg_at_k(ranker=None, test_data=None, k=10, label_type=LABEL_TYPE.MultiLabe
     avg_ndcg_at_k = sum_ndcg_at_k/cnt
     return  avg_ndcg_at_k
 
-def ndcg_at_ks(ranker=None, test_data=None, ks=[1, 5, 10], label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
+def ndcg_at_ks(pred=None, ranker=None, test_data=None, ks=[1, 5, 10], label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
     '''
     There is no check based on the assumption (say light_filtering() is called)
     that each test instance Q includes at least k(k=max(ks)) documents, and at least one relevant document.
@@ -53,9 +58,12 @@ def ndcg_at_ks(ranker=None, test_data=None, ks=[1, 5, 10], label_type=LABEL_TYPE
     sum_ndcg_at_ks = torch.zeros(len(ks))
     cnt = torch.zeros(1)
     already_sorted = True if test_data.presort else False
-    for qid, batch_ranking, batch_labels in test_data: # _, [batch, ranking_size, num_features], [batch, ranking_size]
+    for i, (qid, batch_ranking, batch_labels) in enumerate(test_data): # _, [batch, ranking_size, num_features], [batch, ranking_size]
         if gpu: batch_ranking = batch_ranking.to(device)
-        batch_rele_preds = ranker.predict(batch_ranking)
+        if (ranker is None) and (pred is not None):
+            batch_rele_preds = pred[i].unsqueeze(dim=0)
+        else:
+            batch_rele_preds = ranker.predict(batch_ranking)
         if gpu: batch_rele_preds = batch_rele_preds.cpu()
 
         _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=True)
@@ -83,7 +91,7 @@ def ndcg_at_ks(ranker=None, test_data=None, ks=[1, 5, 10], label_type=LABEL_TYPE
     return avg_ndcg_at_ks
 
 
-def kendall_tau(ranker=None, test_data=None, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
+def kendall_tau(pred=None, ranker=None, test_data=None, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
     '''
     Calculate kendall_tau
     '''
@@ -91,12 +99,16 @@ def kendall_tau(ranker=None, test_data=None, label_type=LABEL_TYPE.MultiLabel, g
     tau_list = []
     cnt = torch.zeros(1)
     already_sorted = True if test_data.presort else False
-
-    for qid, batch_ranking, batch_labels in test_data: # _, [batch, ranking_size, num_features], [batch, ranking_size]
+    for i, (qid, batch_ranking, batch_labels) in enumerate(test_data): # _, [batch, ranking_size, num_features], [batch, ranking_size]
         # print('batch_ranking.shape in kendall_tau', batch_ranking.shape)
         # print('batch_labels.shape in kendall_tau', batch_labels.shape)
         if gpu: batch_ranking = batch_ranking.to(device)
-        batch_rele_preds = ranker.predict(batch_ranking)
+        if (ranker is None) and (pred is not None):
+            batch_rele_preds = pred[i].unsqueeze(dim=0)
+        else:
+            batch_rele_preds = ranker.predict(batch_ranking)
+
+        # print('batch_rele_preds.shape', batch_rele_preds.shape)
         if gpu: batch_rele_preds = batch_rele_preds.cpu()
 
         # get sorted index of batch_rele_preds so that lowest score comes first
@@ -116,3 +128,31 @@ def kendall_tau(ranker=None, test_data=None, label_type=LABEL_TYPE.MultiLabel, g
             tau_list.extend(kendall_tau_list)
     avg_kendall_tau = torch.mean(torch.tensor(tau_list))
     return avg_kendall_tau
+
+def precision_at_k(pred=None, ranker=None, test_data=None, k=20, label_type=LABEL_TYPE.MultiLabel, gpu=False, device=None):
+    '''
+    There is no check based on the assumption (say light_filtering() is called) that each test instance Q includes at least k documents,
+    and at least one relevant document. Or there will be errors.
+    '''
+    sum_precision_at_k = torch.zeros(1)
+    cnt = torch.zeros(1)
+    already_sorted = True if test_data.presort else False
+    for i, (qid, batch_ranking, batch_labels) in enumerate(test_data): # _, [batch, ranking_size, num_features], [batch, ranking_size]
+        if batch_labels.size(1) < k: continue # skip the query if the number of associated documents is smaller than k
+
+        if gpu: batch_ranking = batch_ranking.to(device)
+        if (ranker is None) and (pred is not None):
+            batch_rele_preds = pred[i].unsqueeze(dim=0)
+        else:
+            batch_rele_preds = ranker.predict(batch_ranking)
+        if gpu: batch_rele_preds = batch_rele_preds.cpu()
+
+        _, batch_sorted_inds = torch.sort(batch_rele_preds, dim=1, descending=False)
+
+        batch_precision_at_k = torch_precision_at_k(batch_sys_sorted_labels=batch_sorted_inds, k = k)
+
+        sum_precision_at_k += torch.sum(batch_precision_at_k)
+        cnt += batch_precision_at_k.shape[0]
+
+    avg_precision_at_k = sum_precision_at_k/cnt
+    return  avg_precision_at_k

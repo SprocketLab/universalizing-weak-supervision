@@ -4,16 +4,11 @@ import numpy as np
 class BasicColumnarDataset:
     def __init__(self,file_path,id_feature,features_subset=None,label_feature=None):
         self.df = pd.read_csv(file_path)
-        if(features_subset):
-            
-            self.df = self.df[features_subset+[id_feature]]
-        
+        self.df.drop_duplicates(subset=[id_feature], inplace = True)
         self.feature_subset = features_subset
         self.features = list(self.df.columns)
         self.label_feature = label_feature
         self.id_feature = id_feature
-
-        self.df.drop_duplicates(subset=[id_feature], inplace = True)
 
         # hashing for fast searching
         self.df = self.df.reset_index(drop=True)
@@ -42,7 +37,7 @@ class BasicColumnarDataset:
                 self.df[feature] = self.df[feature] / self.df[feature].max()
 
     def get_feature_map(self,id_val,drop_label_feature=True,drop_id_feature=True):
-        d = self.df.iloc[self.hash_id2idx[id_val]].to_dict()
+        d = self.df.iloc[self.hash_id2idx[id_val]][self.feature_subset].to_dict()
 
         if(drop_label_feature and self.label_feature):
             if(self.label_feature in d):
@@ -50,6 +45,10 @@ class BasicColumnarDataset:
             if(self.id_feature in d):
                 d.pop(self.id_feature)
 
+        return d
+    
+    def get_ref_map(self,id_val):
+        d = self.df.iloc[self.hash_id2idx[id_val]].to_dict()
         return d 
 
     def get_feature(self,id_val,feature):
