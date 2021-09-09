@@ -151,8 +151,10 @@ class IMDBTMDBRankingDataset:
         """
         self.lst_movie_id_train = dict_pickle['lst_movie_id_train']
         self.lst_movie_id_test = dict_pickle['lst_movie_id_test']
-        self.lst_feature_map_train = 'lst_feature_map_train'
-        self.lst_feature_map_test = 'lst_feature_map_test'
+        self.lst_feature_map_train = dict_pickle['lst_feature_map_train']
+        self.lst_feature_map_test = dict_pickle['lst_feature_map_test']
+        self.lst_ref_map_train = dict_pickle['lst_ref_map_train']
+        self.lst_ref_map_test = dict_pickle['lst_ref_map_test']
         self.X_train = dict_pickle['X_train']
         self.Y_train = dict_pickle['Y_train']
         self.X_test = dict_pickle['X_test']
