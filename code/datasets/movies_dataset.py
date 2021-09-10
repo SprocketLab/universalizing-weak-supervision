@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import torch
 import pickle
+import random
+from scipy.stats import percentileofscore
 from sklearn.model_selection import train_test_split
 from basic_clmn_dataset import *
 from ranking_utils import *
@@ -15,6 +17,7 @@ class MoviesRankingDataset:
         raw_file_path = '{}/{}'.format(data_conf['project_root'],data_conf['raw_data_path'])
         self.base_dataset = BasicColumnarDataset(raw_file_path, id_feature='imdbId',
                                                         features_subset= data_conf['features'])
+        self.lst_movie_id = self.base_dataset.get_all_key_values()
         
         self.base_dataset.preprocess()   # might need data_conf params
 
@@ -22,7 +25,6 @@ class MoviesRankingDataset:
         self.n_test = data_conf['n_test']
         self.n = self.n_train + self.n_test
         self.d = data_conf['dimension']
-        self.lst_movie_id = self.base_dataset.get_all_key_values()
         self.base_dataset.label_feature = data_conf['label_feature']
         self.highest_first = data_conf['highest_first']
 
@@ -92,7 +94,7 @@ class MoviesRankingDataset:
         self.lst_feature_map = self.lst_feature_map_train + self.lst_feature_map_test
         self.lst_ref_map = self.lst_ref_map_train + self.lst_ref_map_test
 
-    def _create_samples(self, lst_movie_id_sets, train):
+    def _create_samples(self, lst_movie_id_sets, train, tiered=True):
         """
         inner logic of create_samples
 
@@ -119,9 +121,30 @@ class MoviesRankingDataset:
         else:
             n = self.n_test
 
+        if tiered:
+            d = self.d
+            labels = np.array([bd.get_label(idx) for idx in lst_movie_id_sets])
+            percentiles = np.array([percentileofscore(labels, x) for x in labels])
+            unit = 100 / d
+            levels = [unit * i for i in range(d+1)]
+            level_indices = {}
+            lst_movie_id_sets = np.array(lst_movie_id_sets)
+            for i in range(1, d+1):
+                lower = levels[i-1]
+                upper = levels[i]
+                condition = (percentiles >= lower) & (percentiles < upper)
+                level_indices[i-1] = lst_movie_id_sets[condition]
+
         # generate features & labels of item sets
         for i in range(n):
-            sel_idcs = np.random.choice(lst_movie_id_sets, self.d, replace=False)
+            if tiered:
+                sel_idcs = []
+                for level in range(d):
+                    sel_idcs.append(np.random.choice(level_indices[level]))
+                random.shuffle(sel_idcs)
+            else:
+                sel_idcs = np.random.choice(lst_movie_id_sets, self.d, replace=False)
+
             id_map = dict(zip(sel_idcs, range(self.d)))
             f_map = [bd.get_feature_map(idx) for idx in sel_idcs]
             ref_map = [bd.get_ref_map(idx) for idx in sel_idcs]
