@@ -11,7 +11,7 @@ from basic_clmn_dataset import *
 from ranking_utils import *
 
 
-class BoardGameRankingDataset:
+class BoardGamesRankingDataset:
     def __init__(self, data_conf):
         raw_file_path = '{}/{}'.format(data_conf['project_root'], data_conf['raw_data_path'])
         self.base_dataset = BasicColumnarDataset(raw_file_path, id_feature='id',

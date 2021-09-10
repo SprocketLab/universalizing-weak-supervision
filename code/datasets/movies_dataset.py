@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from basic_clmn_dataset import *
 from ranking_utils import *
 
-class IMDBTMDBRankingDataset:
+class MoviesRankingDataset:
     def __init__(self, data_conf):
 
         raw_file_path = '{}/{}'.format(data_conf['project_root'],data_conf['raw_data_path'])
