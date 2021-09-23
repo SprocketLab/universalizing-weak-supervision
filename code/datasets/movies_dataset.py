@@ -55,7 +55,7 @@ class MoviesRankingDataset:
 
         # data load (file exists & recreat_if_exists = False)
         if os.path.exists(sample_path) and (not self.data_conf['recreate_if_exists']):
-            print(f'Saved samples found in {sample_path} and recreate_if_exists=True, load the data...')
+            print(f'Saved samples found in {sample_path} and recreate_if_exists=False, load the data...')
             with open(sample_path, 'rb') as f:
                 dict_pickle = pickle.load(f)
             self._set_sample_pickle(dict_pickle)
@@ -94,7 +94,7 @@ class MoviesRankingDataset:
         self.lst_feature_map = self.lst_feature_map_train + self.lst_feature_map_test
         self.lst_ref_map = self.lst_ref_map_train + self.lst_ref_map_test
 
-    def _create_samples(self, lst_movie_id_sets, train, tiered=True):
+    def _create_samples(self, lst_movie_id_sets, train, tiered=False):
         """
         inner logic of create_samples
 
