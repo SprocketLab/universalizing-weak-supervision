@@ -1,5 +1,5 @@
 data_conf:
-  dataset_name: imdb_tmdb
+  dataset_name: movies
   dimension: 5
   features:
   - vote_average
@@ -260,10 +260,10 @@ data_conf:
   - actor_facebook_likes
   highest_first: true
   label_feature: vote_average
-  n_test: 500
-  n_train: 100
-  processed_data_path: data/imdb-tmdb/processed/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
-  raw_data_path: data/imdb-tmdb/merged_imdb_tmdb_with_additional_features.csv
+  n_test: 1000
+  n_train: 500
+  processed_data_path: data/processed/movies/movies_example
+  raw_data_path: data/movies.csv
   recreate_if_exists: true
   seed: 0
 l2r_training_conf:
@@ -271,18 +271,18 @@ l2r_training_conf:
   epochs: 5
   learning_rate: 0.01
   model: ListMLE
-  model_checkpoint: tmp/checkpoints/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
+  model_checkpoint: tmp/checkpoints/movies_example
   optimizer: sgd
   test_batch_size: 64
   train_batch_size: 64
-  use_weak_labels: True
+  use_weak_labels: true
   weight_decay: 0.0001
-log_file: tmp/logs/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False.log
+log_file: tmp/logs/movies_example.log
 project_root: ../../../../
-results_path: tmp/results/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False
+results_path: tmp/results/movies
 weak_sup_conf:
   p: null
-  checkpoint_path: data/imdb-tmdb/processed/210513_dim-10_ntrain-500_ntest-1000_model-ListMLE_weaklabel-False/LFs
+  checkpoint_path: data/processed/movies_example/LFs
   inference_rule: weighted_kemeny
   lf_features:
   - revenue
@@ -305,6 +305,8 @@ weak_sup_conf:
   - true
   - true
   - true
+  num_LFs: 3
   synthetic: true
   recreate_if_exists: true
   train_method: triplet_opt
+  seed: 0

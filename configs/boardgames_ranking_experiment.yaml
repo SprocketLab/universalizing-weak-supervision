@@ -1,5 +1,5 @@
 data_conf:
-  dataset_name: board-games
+  dataset_name: boardgames
   dimension: 5
   features: ['yearpublished', 'minplayers', 'maxplayers', 'playingtime',
              'minplaytime', 'maxplaytime', 'minage',
@@ -9,29 +9,29 @@ data_conf:
   highest_first: false
   label_feature: 'Board Game Rank'
   n_train: 500
-  n_test: 100
-  processed_data_path: data/board-games/processed/default
-  raw_data_path: data/board-games/games_detailed_info.csv
+  n_test: 1000
+  processed_data_path: data/boardgames/processed/default
+  raw_data_path: data/boardgames.csv
   recreate_if_exists: true
   seed: 0
 l2r_training_conf:
   debug: true
-  epochs: 12
+  epochs: 8
   learning_rate: 0.01
   model: ListMLE
-  model_checkpoint: tmp/checkpoints/board-games/default
+  model_checkpoint: tmp/checkpoints/boardgames/default
   optimizer: sgd
   test_batch_size: 64
   train_batch_size: 64
   use_weak_labels: False
   weight_decay: 0.0001
-log_file: tmp/logs/board-games_default.log
+log_file: tmp/logs/boardgames_default.log
 project_root: ../../
-results_path: tmp/results/board-games/default
+results_path: tmp/results/boardgames/default
 weak_sup_conf:
   p: null
   num_LFs: 3
-  checkpoint_path: data/board-games/processed/default/LFs
+  checkpoint_path: data/boardgames/processed/default/LFs
   inference_rule: weighted_kemeny
   lf_features: ["owned"]
   lf_features_highest_first_flag:
