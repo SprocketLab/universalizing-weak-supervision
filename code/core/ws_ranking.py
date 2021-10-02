@@ -33,11 +33,9 @@ class WeakSupRanking:
 
         d = len(L[0][0])
 
-        expected_dists = np.zeros(m)
-
         if conf['train_method'] == 'triplet' or conf['train_method'] == 'triplet_opt':
             # TODO: handle the case when num LF  is not multiple of 3
-
+            expected_dists = np.zeros(m)
             i = 0
             order, D = self.order_LFs_on_correlation(L,m)
             
@@ -58,6 +56,38 @@ class WeakSupRanking:
                 self.thetas = 1.0 / np.array(expected_dists)
 
             elif conf['train_method'] == 'triplet_opt':
+                mlw = Mallows(self.r_utils, 1.0)
+                logger.info("expected_dists {}".format(expected_dists))
+                self.thetas = np.array([mlw.estimate_theta(d, expected_dists[i])
+                                        for i in range(len(expected_dists))])
+                self.thetas = self.thetas.clip(1e-1, 100)
+        
+        elif (conf['train_method'] == 'median_triplet') or (conf['train_method'] == 'median_triplet_opt'):
+            expected_dists_dict = {}
+            for lf_idx in range(m):
+                expected_dists_dict[lf_idx] = []
+
+            order, D = self.order_LFs_on_correlation(L,m)
+            
+            for i in range(m):
+                l1 = order[i]
+                for j in range(i+1, m):
+                    l2 = order[j]
+                    for k in range(j+1, m):
+                        l3 = order[k]
+                        ac3 = self.solve_triplet(L, l1, l2, l3, D)
+                        expected_dists_dict[l1].append(ac3[0])
+                        expected_dists_dict[l2].append(ac3[1])
+                        expected_dists_dict[l3].append(ac3[2])
+
+            expected_dists = np.zeros(m)
+            for lf_idx in range(m):
+                expected_dists[lf_idx] = np.median(expected_dists_dict[lf_idx])
+
+            if conf['train_method'] == 'median_triplet':
+                self.thetas = 1.0 / np.array(expected_dists)
+
+            elif conf['train_method'] == 'median_triplet_opt':
                 mlw = Mallows(self.r_utils, 1.0)
                 logger.info("expected_dists {}".format(expected_dists))
                 self.thetas = np.array([mlw.estimate_theta(d, expected_dists[i])
