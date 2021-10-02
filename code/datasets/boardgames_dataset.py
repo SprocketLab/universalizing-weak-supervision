@@ -229,6 +229,6 @@ class BoardGamesRankingDataset:
         -------
 
         """
-
+        d = self.d
         Y_score_torch = ranking_to_score(Y, d, highest_first)
         return Y_score_torch
