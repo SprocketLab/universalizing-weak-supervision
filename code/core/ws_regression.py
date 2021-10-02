@@ -6,7 +6,7 @@ class LabelModel():
     def __init__(self, use_triplets=True):
         self.use_triplets = use_triplets  # only choice right now
 
-    def fit(self, L_train, var_Y, seed=10):
+    def fit(self, L_train, var_Y, median=False, seed=10):
         self.n, self.m = L_train.shape
         n, m = self.n, self.m
         self.O = np.transpose(L_train) @ L_train / self.n
@@ -15,15 +15,37 @@ class LabelModel():
 
         random.seed(seed)
 
-        for i in range(m):
-            idxes = set(range(m))
-            idxes.remove(i)
-            # triplet is now i,j,k
-            [j, k] = random.sample(idxes, 2)
-            # solve from triplet using conditional independence
-            acc = np.sqrt(self.O[i, j] * self.O[i, k] * var_Y / self.O[j, k])
-            self.Sigma_hat[i, m] = acc
-            self.Sigma_hat[m, i] = acc
+        if median:
+            # Init dict to collect accuracies in triplets
+            acc_collection = {}
+            for i in range(m):
+                acc_collection[i] = []
+
+            # Collect triplet results
+            for i in range(m):
+                for j in range(i+1, m):
+                    for k in range(j+1, m):
+                        acc_i = np.sqrt(self.O[i, j] * self.O[i, k] * var_Y / self.O[j, k])
+                        acc_j = np.sqrt(self.O[j, i] * self.O[j, k] * var_Y / self.O[i, k])
+                        acc_k = np.sqrt(self.O[k, i] * self.O[k, j] * var_Y / self.O[i, j])
+                        acc_collection[i].append(acc_i)
+                        acc_collection[j].append(acc_j)
+                        acc_collection[k].append(acc_k)
+
+            # Take medians
+            for i in range(m):
+                self.Sigma_hat[i, m] = np.median(acc_collection[i])
+                self.Sigma_hat[m, i] = np.median(acc_collection[i])
+        else:
+            for i in range(m):
+                idxes = set(range(m))
+                idxes.remove(i)
+                # triplet is now i,j,k
+                [j, k] = random.sample(idxes, 2)
+                # solve from triplet using conditional independence
+                acc = np.sqrt(self.O[i, j] * self.O[i, k] * var_Y / self.O[j, k])
+                self.Sigma_hat[i, m] = acc
+                self.Sigma_hat[m, i] = acc
 
         # we filled in all but the right-bottom corner, add it in
         self.Sigma_hat[m, m] = var_Y
