@@ -16,23 +16,31 @@ import math
 WEAK_LABEL_FILE_NAME  = 'weak_labels.pkl'
 SYNTHETIC_WEAK_LABEL_FILE_NAME = 'synthetic_weak_labels.pkl'
 
-def generate_synthetic_LFs(Y, m, p=None, min_theta=0, max_theta=1.0):
+def generate_synthetic_LFs(Y, m, seed, good_ratio=1/3, p=None,
+                           good_min_theta=2, good_max_theta=5,
+                           bad_min_theta=0.001, bad_max_theta=0.01):
     """
 
     Parameters
     ----------
     Y: true label
     m: the number of label functions
+    seed: random seed for sampling theta parameters
+    good_ratio: 
     p: the fraction of unmasked items
-    min_theta: the min value of uniform sampling for thetas
-    max_theta: the max value of uniform sampling for thetas
-
+    
     Returns
     -------
     """
     assert len(Y) != 0, "True label Y is empty"
-    np.random.seed(0)
-    thetas = np.random.uniform(min_theta, max_theta, m)
+    if seed is not None:
+        np.random.seed(seed)
+    
+    m_good = int(m * good_ratio)
+    m_bad = m - m_good
+    thetas = np.zeros(m)    
+    thetas[:m_good] = np.random.uniform(good_min_theta, good_max_theta, m_good)
+    thetas[m_good:] = np.random.uniform(bad_min_theta, bad_max_theta, m_bad)
     thetas = np.sort(thetas)
 
     L = sample_mallows_LFs(Y, m, thetas, p)
@@ -82,6 +90,10 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
     else:
         m = weak_sup_conf['num_LFs']
 
+    seed = weak_sup_conf.get('seed')
+    if seed is None:
+        print("Warning: no random seed for weak_sup_conf, it will use arbirary seed")
+
     d = dataset.d
     lf_features = weak_sup_conf['lf_features']
     lf_features_flags = weak_sup_conf['lf_features_highest_first_flag']
@@ -104,7 +116,22 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
 
         # generate weak labels
         if weak_sup_conf.get('synthetic') is True:
-            L = generate_synthetic_LFs(dataset.Y, m, p=weak_sup_conf.get('p'))
+            if weak_sup_conf.get('good_max_theta') is not None:
+                # Assume there is one, all exist together
+                good_max_theta = weak_sup_conf.get('good_max_theta')
+                good_min_theta = weak_sup_conf.get('good_min_theta')
+                bad_max_theta = weak_sup_conf.get('bad_max_theta')
+                bad_min_theta = weak_sup_conf.get('bad_min_theta')
+
+                L = generate_synthetic_LFs(dataset.Y, m,
+                                           good_max_theta = good_max_theta,
+                                           good_min_theta = good_min_theta,
+                                           bad_max_theta = bad_max_theta,
+                                           bad_min_theta = bad_min_theta,
+                                           seed=seed, p=weak_sup_conf.get('p'))
+                
+            else:
+                L = generate_synthetic_LFs(dataset.Y, m, seed=seed, p=weak_sup_conf.get('p'))
         else:
             L = generate_LFs(dataset, lst_lfs)
 
@@ -120,6 +147,21 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
 
     r_utils = RankingUtils(d)
 
+    # Calculate individual LFs distance
+    individual_kt = []
+    lfs = {}
+    for lf_idx in range(m):
+        lfs[lf_idx] = []
+    
+    for lf_instance in L:
+        for lf_idx in range(m):
+            lfs[lf_idx].append(lf_instance[lf_idx])
+            
+    individual_kt.append(
+        [r_utils.mean_kt_distance(lfs[lf_idx], dataset.Y) for lf_idx in range(m)]
+    )
+    
+    # final
     if weak_sup_conf.get('inference_rule').lower() == 'snorkel':
         print("Use snorkel...")
         r_utils.set_perm2int_int2perm_mapping()
@@ -127,7 +169,7 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
         label_model = LabelModel(cardinality=math.factorial(d), verbose=True)
         label_model.fit(L_train=L_int, n_epochs=500, log_freq=100)
         lst_pi_hat = r_utils.int2perm(label_model.predict(L_int, tie_break_policy="random"))
-        return lst_pi_hat, []
+        return lst_pi_hat, [], individual_kt
     else:
         print(f"Use our weak supervision...train_method: {weak_sup_conf['train_method']},"
               f"inference_rule: {weak_sup_conf['inference_rule']}")
@@ -137,7 +179,7 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
         m = len(L[0])
         lst_pi_hat = wsr.infer_ranking(weak_sup_conf, L, numLFs=m)
 
-        return lst_pi_hat, wsr.thetas
+        return lst_pi_hat, wsr.thetas, individual_kt
 
 
 def restore_ranking(scores):

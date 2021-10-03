@@ -18,7 +18,7 @@ from ptranking.utils.bigdata.BigPickle import pickle_save
 from ptranking.metric.metric_utils import metric_results_to_string
 from ptranking.data.data_utils import get_data_meta, SPLIT_TYPE, LABEL_TYPE
 from ptranking.ltr_adhoc.eval.eval_utils import ndcg_at_ks, ndcg_at_k, kendall_tau, precision_at_k
-from ptranking.data.data_utils import LTRDataset, YAHOO_LTR, ISTELLA_LTR, MSLETOR_SEMI, MSLETOR_LIST, IMDB, SYNTHETIC, BOARDGAME
+from ptranking.data.data_utils import LTRDataset, YAHOO_LTR, ISTELLA_LTR, MSLETOR_SEMI, MSLETOR_LIST, MOVIES, BOARDGAMES, SYNTHETIC
 from ptranking.ltr_adhoc.eval.parameter import ModelParameter, DataSetting, EvalSetting, ScoringFunctionParameter
 
 from ptranking.ltr_adhoc.pointwise.rank_mse   import RankMSE
@@ -117,7 +117,7 @@ class LTREvaluator():
                 file_vali = None
                 file_train, file_test = data_dict['dir_data'] + 'train.txt', data_dict['dir_data'] + 'test.txt'
 
-        elif (data_dict['data_id'].upper() in IMDB) or (data_dict['data_id'].upper() in BOARDGAME):
+        elif (data_dict['data_id'].upper() in MOVIES) or (data_dict['data_id'].upper() in BOARDGAMES):
             file_train, file_test = os.path.join(data_dict['dir_data'], 'train.npz'),\
                                         os.path.join(data_dict['dir_data'], 'test.npz')
 
@@ -747,9 +747,9 @@ class LTREvaluator():
             self.eval_setting = EvalSetting(debug=debug, dir_output=dir_output)
 
     def get_default_eval_setting(self):
-        if self.data_setting.data_dict['data_id'].upper() in IMDB:
+        if self.data_setting.data_dict['data_id'].upper() in MOVIES:
             return self.eval_setting.tmdb_setting()
-        elif self.data_setting.data_dict['data_id'].upper() in IMDB:
+        elif self.data_setting.data_dict['data_id'].upper() in MOVIES:
             return self.eval_setting.boardgame_setting()
         else:
             return self.eval_setting.default_setting()

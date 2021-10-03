@@ -47,11 +47,11 @@ GLTR_LIBSVM = ['LTR_LibSVM', 'LTR_LibSVM_K']
 GLTR_LETOR  = ['LETOR', 'LETOR_K']
 
 '''
-Newly introduced dataset in this research, which includes TMDB and IMDB dataset
+Newly introduced dataset in this research
 '''
-IMDB        = ["IMDB_TMDB"]
+MOVIES        = ["MOVIES"]
 SYNTHETIC   = ["SYNTHETIC"]
-BOARDGAME   = ["BOARD-GAMES"]
+BOARDGAMES   = ["BOARD-GAMES", "BOARDGAMES"]
 MODIFIED_MSLR_WEB10K = ['MODIFIED_MSLR_WEB10K']
 
 """
@@ -175,13 +175,13 @@ def get_data_meta(data_id=None):
         else:
             has_comment = True
 
-    elif (data_id.upper() in IMDB):
+    elif (data_id.upper() in MOVIES):
         max_rele_level = None
         label_type = LABEL_TYPE.Permutation
         num_features = None ## Bad coding (TODO: fix it) - num_features will be updated in get_default_data_dict
         has_comment = False
         fold_num = 1
-    elif (data_id.upper() in BOARDGAME):
+    elif (data_id.upper() in BOARDGAMES):
         max_rele_level = None
         label_type = LABEL_TYPE.Permutation
         num_features = None ## Bad coding (TODO: fix it) - num_features will be updated in get_default_data_dict
@@ -723,8 +723,8 @@ class LTRDataset(data.Dataset):
                         os.makedirs(parent_dir)
                     pickle_save(self.list_torch_Qs, torch_perquery_file)
 
-        elif ((data_dict['data_id'].upper() in IMDB) or (data_dict['data_id'].upper() in SYNTHETIC) or
-            (data_dict['data_id'].upper() in BOARDGAME) or (data_dict['data_id'].upper() in MODIFIED_MSLR_WEB10K)):
+        elif ((data_dict['data_id'].upper() in MOVIES) or (data_dict['data_id'].upper() in SYNTHETIC) or
+            (data_dict['data_id'].upper() in BOARDGAMES) or (data_dict['data_id'].upper() in MODIFIED_MSLR_WEB10K)):
             if data_dict['dir_data'] not in file:
                 data_path = os.path.join(data_dict['dir_data'], file)
             else:

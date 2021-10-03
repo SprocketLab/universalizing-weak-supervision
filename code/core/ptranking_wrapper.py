@@ -6,7 +6,8 @@ from ptranking.ltr_adhoc.eval.ltr import LTREvaluator
 RESULT_FILE_NAME = 'result_summary.pkl'
 
 class PtrankingWrapper:
-    def __init__(self, data_conf, weak_sup_conf, l2r_training_conf, result_path, wl_kt_distance=None):
+    def __init__(self, data_conf, weak_sup_conf, l2r_training_conf, result_path,
+                 wl_kt_distance=None, individual_kt=None):
         self.data_conf = data_conf
         self.weak_sup_conf = weak_sup_conf
         self.l2r_training_conf =l2r_training_conf
@@ -14,6 +15,7 @@ class PtrankingWrapper:
         self.debug = l2r_training_conf['debug']
         self.ltr_evaluator = LTREvaluator()
         self.wl_kt_distance = wl_kt_distance  # save the kt distance between weak labels & true labels
+        self.individual_kt = individual_kt
 
         ''' using the default setting for loading dataset & using the default setting for evaluation '''
         ''' mainly parameters for ptranking package'''
@@ -166,6 +168,7 @@ class PtrankingWrapper:
         result_summary['weak_sup_conf'] = self.weak_sup_conf
         result_summary['l2r_training_conf'] = self.l2r_training_conf
         result_summary['wl_kt_distance'] = self.wl_kt_distance
+        result_summary['individual_kt'] = self.individual_kt
         save_path = self.result_path
         if not os.path.exists(save_path):
             os.makedirs(save_path)
