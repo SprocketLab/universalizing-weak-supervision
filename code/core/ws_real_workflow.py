@@ -92,7 +92,7 @@ def get_weak_labels(dataset, weak_sup_conf, root_path='.'):
 
     seed = weak_sup_conf.get('seed')
     if seed is None:
-        print("Warning: no random seed for weak_sup_conf, it will use arbirary seed")
+        print("Warning: no random seed for weak_sup_conf, it will use arbitrary seed")
 
     d = dataset.d
     lf_features = weak_sup_conf['lf_features']
