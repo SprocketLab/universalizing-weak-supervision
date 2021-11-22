@@ -1,6 +1,6 @@
 # Universalizing Weak Supervision
 
-![framework](assets/uws_figure.pdf)
+![framework](assets/uws_figure.png)
 
 This is the source code for our paper: Universalizing Weak Supervision. We propose a universal technique that enables weak supervision over any label type while still offering desirable properties, including practicalflexibility, computational efficiency, and theoretical guarantees
 
