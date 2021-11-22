@@ -1,4 +1,4 @@
-name: ws-cardinality
+name: universalizing-weak-supervision
 channels:
   - anaconda
   - conda-forge
@@ -17,3 +17,5 @@ dependencies:
   - networkx
   - pyyaml
   - matplotlib
+  - geoopt
+  

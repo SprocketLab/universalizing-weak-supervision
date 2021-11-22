@@ -2,48 +2,42 @@ data_conf:
   dataset_name: movies
   dimension: 5
   features:
-  - vote_average
-  - Black and White
+  - ' Black and White'
   - Color
   - unknown:color
   - love
-  - friend
   - murder
+  - friend
   - death
   - police
-  - new york city
   - high school
-  - unknown:plot_keywords
+  - new york city
   - alien
+  - fbi
   - boy
   - school
   - revenge
-  - fbi
   - drugs
-  - friendship
   - prison
-  - money
-  - marriage
   - escape
-  - island
-  - party
   - dog
-  - wedding
-  - female protagonist
+  - friendship
+  - money
+  - party
+  - scientist
+  - serial killer
   - detective
-  - box office flop
+  - marriage
+  - wedding
+  - island
   - sex
-  - rescue
-  - battle
   - teenager
   - lawyer
+  - rescue
   - christmas
-  - hospital
-  - serial killer
-  - train
-  - vomiting
   - cia
-  - scientist
+  - best friend
+  - future
   - Approved
   - G
   - GP
@@ -52,121 +46,85 @@ data_conf:
   - Not Rated
   - PG
   - PG-13
-  - Passed
   - R
-  - TV-14
-  - TV-G
-  - TV-PG
   - Unrated
   - X
   - unknown:content_rating
   - missing_homepage
+  - duringcreditsstinger
   - woman_director
   - independent_film
-  - duringcreditsstinger
   - based_on_novel
-  - murder.1
   - aftercreditsstinger
+  - murder.1
   - violence
   - dystopia
-  - sport
   - revenge.1
-  - sex.1
-  - friendship.1
-  - musical
+  - sport
   - 3d
-  - biography
+  - friendship.1
   - teenager.1
-  - sequel
-  - love.1
-  - suspense
+  - sex.1
+  - musical
+  - biography
   - new_york
-  - police.1
+  - sequel
   - los_angeles
   - high_school
+  - police.1
+  - suspense
+  - love.1
   - alien.1
   - family
-  - nudity
   - prison.1
   - london_england
   - superhero
+  - nudity
   - drug
   - dying_and_death
   - father_son_relationship
   - remake
-  - daughter
-  - magic
   - serial_killer
-  - world_war_ii
-  - wedding.1
-  - based_on_comic_book
+  - magic
   - escape.1
+  - daughter
+  - world_war_ii
+  - based_on_comic_book
+  - wedding.1
   - kidnapping
-  - corruption
-  - suicide
-  - friends
-  - hospital.1
   - time_travel
-  - party.1
-  - martial_arts
+  - fbi.1
+  - corruption
   - af
-  - ar
-  - cn
   - cs
   - da
-  - de
-  - el
   - en
   - es
-  - fa
   - fr
   - he
-  - hi
   - hu
-  - id
   - is
   - it
-  - ja
-  - ko
-  - ky
-  - nb
   - nl
-  - 'no'
-  - pl
-  - ps
-  - pt
-  - ro
-  - ru
-  - sv
-  - te
   - th
-  - vi
-  - xx
-  - zh
   - warner_bros_
   - universal_pictures
   - paramount_pictures
   - twentieth_century_fox_film_corporation
   - columbia_pictures
   - new_line_cinema
-  - metro_goldwyn_mayer__mgm_
   - touchstone_pictures
   - walt_disney_pictures
   - relativity_media
+  - metro_goldwyn_mayer__mgm_
   - columbia_pictures_corporation
   - miramax_films
   - village_roadshow_pictures
   - dreamworks_skg
-  - united_artists
-  - canal_
   - regency_enterprises
+  - united_artists
   - fox_searchlight_pictures
   - dune_entertainment
-  - lionsgate
-  - tristar_pictures
-  - fox_2000_pictures
-  - summit_entertainment
-  - working_title_films
   - count_production_countries
   - year
   - Apr
@@ -189,57 +147,49 @@ data_conf:
   - Tue
   - Wed
   - count_spoken_langueges
-  - Post Production
   - Released
-  - Rumored
   - Robert De Niro
   - Morgan Freeman
-  - Johnny Depp
   - Bruce Willis
+  - Johnny Depp
   - Matt Damon
-  - Steve Buscemi
-  - Bill Murray
-  - Liam Neeson
   - Nicolas Cage
-  - Brad Pitt
+  - Steve Buscemi
+  - Liam Neeson
   - Denzel Washington
-  - Will Ferrell
+  - Brad Pitt
+  - Bill Murray
   - J.K. Simmons
-  - Anthony Hopkins
   - Tom Cruise
-  - Jim Broadbent
-  - Scarlett Johansson
+  - Will Ferrell
   - Harrison Ford
-  - James Franco
-  - Christian Bale
-  - Robert Downey Jr.
   - Tom Hanks
-  - Julia Roberts
+  - Jim Broadbent
+  - Anthony Hopkins
   - Sylvester Stallone
-  - Tom Wilkinson
-  - Robin Williams
-  - Meryl Streep
-  - Matthew McConaughey
-  - action
-  - adventure
-  - animation
-  - comedy
-  - crime
-  - documentary
-  - drama
-  - family.1
-  - fantasy
-  - foreign
-  - history
-  - horror
-  - music
-  - mystery
-  - romance
-  - science_fiction
-  - thriller
-  - tv_movie
-  - war
-  - western
+  - James Franco
+  - Julia Roberts
+  - Action
+  - Adventure
+  - Animation
+  - Biography
+  - Comedy
+  - Crime
+  - Documentary
+  - Drama
+  - Family
+  - Fantasy
+  - History
+  - Horror
+  - Music
+  - Musical
+  - Mystery
+  - Romance
+  - Sci-Fi
+  - Sport
+  - Thriller
+  - War
+  - Western
   - num_critic_for_reviews
   - duration
   - director_facebook_likes
@@ -248,14 +198,14 @@ data_conf:
   - cast_total_facebook_likes
   - facenumber_in_poster
   - num_user_for_reviews
-  - budget_imdb
+  - budget
   - title_year
   - aspect_ratio
   - movie_facebook_likes
-  - budget_tmdb
   - popularity
   - revenue
   - runtime
+  - vote_average
   - vote_count
   - actor_facebook_likes
   highest_first: true
@@ -263,6 +213,7 @@ data_conf:
   n_test: 1000
   n_train: 500
   processed_data_path: data/processed/movies/movies_example
+  project_root: ../../
   raw_data_path: data/movies.csv
   recreate_if_exists: true
   seed: 0
@@ -278,10 +229,9 @@ l2r_training_conf:
   use_weak_labels: true
   weight_decay: 0.0001
 log_file: tmp/logs/movies_example.log
-project_root: ../../../../
+project_root: ../../
 results_path: tmp/results/movies
 weak_sup_conf:
-  p: null
   checkpoint_path: data/processed/movies_example/LFs
   inference_rule: weighted_kemeny
   lf_features:
@@ -306,7 +256,8 @@ weak_sup_conf:
   - true
   - true
   num_LFs: 3
-  synthetic: true
+  p: null
   recreate_if_exists: true
-  train_method: triplet_opt
   seed: 0
+  synthetic: true
+  train_method: triplet_opt

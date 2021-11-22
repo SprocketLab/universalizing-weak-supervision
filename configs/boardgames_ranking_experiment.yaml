@@ -23,7 +23,7 @@ l2r_training_conf:
   optimizer: sgd
   test_batch_size: 64
   train_batch_size: 64
-  use_weak_labels: False
+  use_weak_labels: True
   weight_decay: 0.0001
 log_file: tmp/logs/boardgames_default.log
 project_root: ../../
