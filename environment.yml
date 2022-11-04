@@ -16,6 +16,4 @@ dependencies:
   - munkres
   - networkx
   - pyyaml
-  - matplotlib
-  - geoopt
-  
+  - matplotlib  
