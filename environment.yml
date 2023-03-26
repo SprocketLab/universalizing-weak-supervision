@@ -1,4 +1,4 @@
-name: universalizing-weak-supervision
+name: uws
 channels:
   - anaconda
   - conda-forge
@@ -9,11 +9,14 @@ dependencies:
   - jupyter
   - pandas
   - scipy
-  - pytorch
   - scikit-learn
   - tqdm
-  - pytorch
   - munkres
   - networkx
   - pyyaml
-  - matplotlib  
+  - matplotlib
+  - pip
+  - pip:
+    - geoopt
+    - pgmpy
+    - flyingsquid

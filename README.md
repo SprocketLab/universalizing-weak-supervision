@@ -24,13 +24,7 @@ conda env create -f environment.yml
 and activate it with
 
 ```
-conda activate universalizing-weak-supervision
-```
-
-And, install geoopt using pip (Currently, it cannot be installed with environment.yml).
-
-```
-pip install geoopt
+conda activate uws
 ```
 
 
