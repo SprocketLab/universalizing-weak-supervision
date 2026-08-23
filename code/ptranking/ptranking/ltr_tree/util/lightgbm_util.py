@@ -196,7 +196,7 @@ def lightgbm_custom_obj_ranknet(labels=None, preds=None, group=None):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = labels[head:head + num_docs_per_query]
         preds_per_query  = preds[head:head + num_docs_per_query]
 
@@ -227,7 +227,7 @@ def lightgbm_custom_obj_ranknet_fobj(preds, train_data):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = all_labels[head:head + num_docs_per_query]
         preds_per_query  = preds[head:head + num_docs_per_query]
 
@@ -255,7 +255,7 @@ def lightgbm_custom_obj_lambdarank(labels=None, preds=None, group=None):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = labels[head:head + num_docs_per_query]
         preds_per_query = preds[head:head + num_docs_per_query]
 
@@ -286,7 +286,7 @@ def lightgbm_custom_obj_lambdarank_fobj(preds, train_data):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = all_labels[head:head + num_docs_per_query]
         preds_per_query = preds[head:head + num_docs_per_query]
 
@@ -344,7 +344,7 @@ def lightgbm_custom_obj_listnet(labels=None, preds=None, group=None):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = labels[head:head + num_docs_per_query]
         preds_per_query = preds[head:head + num_docs_per_query]
 
@@ -374,7 +374,7 @@ def lightgbm_custom_obj_listnet_fobj(preds, train_data):
         all_grad, all_hess = np.zeros((size_data,)), np.zeros((size_data,))
 
     head = 0
-    for num_docs_per_query in group.astype(np.int):
+    for num_docs_per_query in group.astype(int):
         labels_per_query = all_labels[head:head + num_docs_per_query]
         preds_per_query = preds[head:head + num_docs_per_query]
 
