@@ -69,7 +69,7 @@ def probs_to_preds(
             raise ValueError(
                 f"tie_break_policy={tie_break_policy} policy not recognized."
             )
-    return Y_pred.astype(np.int)
+    return Y_pred.astype(int)
 
 
 def preds_to_probs(preds: np.ndarray, num_classes: int) -> np.ndarray:

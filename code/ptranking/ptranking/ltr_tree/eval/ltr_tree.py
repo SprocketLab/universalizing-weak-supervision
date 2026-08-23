@@ -138,7 +138,7 @@ class TreeLTREvaluator(LTREvaluator):
             torch.from_numpy(all_std_labels.astype(np.float32)), torch.from_numpy(all_preds.astype(np.float32))
 
         head = 0
-        if model_id.startswith('LightGBM'): group = group.astype(np.int).tolist()
+        if model_id.startswith('LightGBM'): group = group.astype(int).tolist()
         for gr in group:
             tor_per_query_std_labels = tor_all_std_labels[head:head+gr]
             tor_per_query_preds = tor_all_preds[head:head+gr]

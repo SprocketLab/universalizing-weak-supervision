@@ -899,19 +899,19 @@ def load_letor_data_as_libsvm_data(in_file, split_type=None, data_id=None, min_d
                 for qid, doc_reprs, doc_labels in list_Qs:
                     doc_labels = np_random_mask_rele_labels(batch_label=doc_labels, mask_ratio=eval_dict['mask_ratio'], mask_value=0)
                     if doc_labels is not None:
-                        letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(np.int),
+                        letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(int),
                                         output_feature=output_feature, output_group=output_group, need_group=need_group)
             elif MASK_TYPE.rand_mask_all == MASK_TYPE[eval_dict['mask_type']]:
                 for qid, doc_reprs, doc_labels in list_Qs:
                     doc_labels = np_random_mask_all_labels(batch_label=doc_labels, mask_ratio=eval_dict['mask_ratio'], mask_value=0)
                     if doc_labels is not None:
-                        letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(np.int),
+                        letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(int),
                                         output_feature=output_feature, output_group=output_group, need_group=need_group)
             else:
                 raise NotImplementedError
         else:
             for qid, doc_reprs, doc_labels in list_Qs:
-                letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(np.int),
+                letor_to_libsvm(doc_reprs=doc_reprs.astype(np.float32), doc_labels=doc_labels.astype(int),
                                 output_feature=output_feature, output_group=output_group, need_group=need_group)
 
         output_group.close()
