@@ -10,7 +10,7 @@ import numpy as np
 
 from ..base import BaseLabelModel
 from ..config import InferenceRule, RankingConfig, TrainMethod
-from ..utils.triplets import individual_distances
+from ..utils.triplets import individual_distances, rank_one_fit
 from . import aggregation
 from .mallows import Mallows
 from .ranking import Ranking, RankingUtils
@@ -28,8 +28,7 @@ def as_rankings(L, r_utils: Optional[RankingUtils] = None) -> list[list[Ranking]
     return L
 
 
-def sign_expected_distances(Z: np.ndarray, groups: Optional[Sequence] = None, n_iter: int = 500,
-                            tol: float = 1e-10) -> np.ndarray:
+def sign_expected_distances(Z: np.ndarray, groups: Optional[Sequence] = None) -> np.ndarray:
     """Per-LF expected Kendall distance to the latent ranking from pair-sign agreements.
 
     With ``z`` the pair signs, conditional independence gives ``M_ab = E[z_a z_b] = s_a s_b``, where
@@ -52,26 +51,12 @@ def sign_expected_distances(Z: np.ndarray, groups: Optional[Sequence] = None, n_
     cnt = np.einsum("nap,nbp->ab", np.abs(Z), np.abs(Z))
     M = np.divide(num, cnt, out=np.zeros_like(num), where=cnt > 0)
     W = cnt.astype(float)
-    np.fill_diagonal(W, 0.0)
     if groups is not None:
         g = np.asarray(groups)
         W[g[:, None] == g[None, :]] = 0.0
-    if np.any(W.sum(1) == 0):
+    if np.any((W - np.diag(np.diag(W))).sum(1) == 0):
         raise ValueError("Some LF shares no observed pairs with any usable partner")
-    # init: leading eigenvector of the off-diagonal agreement matrix (diagonal filled with row means)
-    M0 = np.where(W > 0, M, 0.0)
-    np.fill_diagonal(M0, M0.sum(1) / np.maximum((W > 0).sum(1), 1))
-    vals, vecs = np.linalg.eigh(M0)
-    s = np.abs(vecs[:, -1]) * np.sqrt(max(vals[-1], 1e-12))
-    for _ in range(n_iter):
-        s_old = s.copy()
-        for a in range(m):
-            denom = (W[a] * s**2).sum()
-            if denom > 0:
-                s[a] = (W[a] * M[a] * s).sum() / denom
-        s = np.clip(s, 0.0, 1.0)
-        if np.max(np.abs(s - s_old)) < tol:
-            break
+    s = rank_one_fit(M, W)
     return P * (1.0 - s) / 2.0
 
 

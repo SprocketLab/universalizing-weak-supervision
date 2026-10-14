@@ -122,3 +122,45 @@ def individual_distances(
     if clip:
         e = np.maximum(e, eps)
     return e
+
+
+def rank_one_fit(M: np.ndarray, W: Optional[np.ndarray] = None, nonneg: bool = True, n_iter: int = 500,
+                 tol: float = 1e-10) -> np.ndarray:
+    """Fit ``M_ab ≈ s_a s_b`` on the off-diagonal of a symmetric agreement matrix (weighted least squares).
+
+    This is the multiplicative counterpart of the triplet method: for conditionally independent LFs, centered
+    agreements factor as ``s_a s_b`` (pair signs of rankings, ``E[z_a z_b] = s_a s_b``; symmetric K-class noise,
+    ``(K P(a = b) - 1) / (K - 1) = s_a s_b``; Gaussian LFs, ``Cov_ab = a_a a_b / var_Y``). Using every pair
+    instead of individual triplet ratios avoids the noise of near-uninformative partners.
+
+    Parameters
+    ----------
+    M : (m, m) array
+    W : (m, m) array, optional
+        Non-negative pair weights (e.g. co-observation counts); zero entries are excluded. Diagonal ignored.
+    nonneg : bool
+        Clip ``s`` to ``[0, 1]`` (agreements of better-than-random LFs).
+    """
+    M = np.asarray(M, dtype=float)
+    m = M.shape[0]
+    W = np.ones((m, m)) if W is None else np.asarray(W, dtype=float).copy()
+    np.fill_diagonal(W, 0.0)
+    if np.any(W.sum(1) == 0):
+        raise ValueError("Some LF has no usable partner")
+    M0 = np.where(W > 0, M, 0.0)
+    np.fill_diagonal(M0, M0.sum(1) / np.maximum((W > 0).sum(1), 1))
+    vals, vecs = np.linalg.eigh(M0)
+    s = vecs[:, -1] * np.sqrt(max(vals[-1], 1e-12))
+    if s.sum() < 0:
+        s = -s
+    for _ in range(n_iter):
+        s_old = s.copy()
+        for a in range(m):
+            denom = (W[a] * s**2).sum()
+            if denom > 0:
+                s[a] = (W[a] * M[a] * s).sum() / denom
+        if nonneg:
+            s = np.clip(s, 0.0, 1.0)
+        if np.max(np.abs(s - s_old)) < tol:
+            break
+    return s
