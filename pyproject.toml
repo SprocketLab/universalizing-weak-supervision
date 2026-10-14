@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uws"
+dynamic = ["version"]
+description = "Universalizing Weak Supervision: label models for rankings, regression, manifolds and any metric space"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "uws/_vendor/ptranking/LICENSE"]
+requires-python = ">=3.9"
+authors = [
+  { name = "Changho Shin" }, { name = "Winfred Li" }, { name = "Harit Vishwakarma" },
+  { name = "Nicholas Roberts" }, { name = "Frederic Sala" },
+]
+keywords = ["weak supervision", "label model", "ranking", "mallows", "learning to rank", "metric spaces"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+  "numpy>=1.21",
+  "scipy>=1.7",
+  "pandas>=1.3",
+  "scikit-learn>=1.0",
+  "pyyaml>=5.4",
+  "tqdm>=4.0",
+]
+
+[project.optional-dependencies]
+l2r = ["torch>=1.13"]
+geodesic = ["torch>=1.13", "geoopt>=0.5"]
+binary = ["flyingsquid", "pgmpy"]
+snorkel = ["snorkel>=0.9.9"]
+all = ["uws[l2r,geodesic,snorkel]"]
+dev = ["pytest>=7", "pytest-cov", "ruff>=0.4", "mypy>=1.5", "build", "twine", "pre-commit", "networkx"]
+docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-autodoc-typehints"]
+tutorials = ["jupyter", "matplotlib", "networkx"]
+
+[project.urls]
+Homepage = "https://github.com/Sala-Group/universalizing-weak-supervision"
+Paper = "https://arxiv.org/abs/2112.03865"
+
+[project.scripts]
+uws-experiment = "uws.experiments.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "uws.version.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["uws*"]
+
+[tool.setuptools.package-data]
+"uws._vendor.ptranking" = ["LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+extend-exclude = ["uws/_vendor", "tutorials", "benchmarks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B905", "E741", "UP006", "UP007", "UP035", "UP045"]
+
+[tool.ruff.lint.per-file-ignores]
+"uws/ranking/label_model.py" = ["N802"]
+
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+exclude = ["uws/_vendor/"]
