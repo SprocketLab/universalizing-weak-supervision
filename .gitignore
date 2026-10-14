@@ -137,3 +137,6 @@ data/imdb-tmdb/processed/*
 logs
 docs/_build/
 docs/generated/
+data/*/processed/
+data/processed/
+tmp/
