@@ -21,6 +21,12 @@ the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials
 - A common `BaseLabelModel` interface (`fit`, `predict`, `get_weights`, `save`, `load`).
 - `RankingLabelModel` (new name of `WeakSupRanking`, which remains as an alias) with `fit`/`predict`, typed
   `TrainMethod`/`InferenceRule` options and `lstsq` training.
+- `sign_triplet` / `sign_triplet_opt` ranking train methods: estimate each LF's agreement with the latent
+  ranking from the exact pair-sign identity `E[z_a z_b] = s_a s_b` (rank-1 fit over all LF pairs) instead of the
+  additive distance identity, which underestimates near-random LFs because Kendall distances saturate. Masking
+  does not bias it. On synthetic Mallows data it matches or beats `median_triplet_opt` everywhere tested
+  (weighted-Kemeny KT 0.114 → 0.025 with four near-random LFs out of six; 0.184 → 0.125 for partial rankings with
+  p = 0.5) and is close to inference with the true thetas. Not the default yet (the paper's method is).
 - `uws.geodesic`: `GeodesicRegressor`, `LFGenerator` and data generators from the geodesic notebook.
 
 ### Algorithmic corrections (`legacy=True` / `sampler="legacy"` restore the paper's behavior)

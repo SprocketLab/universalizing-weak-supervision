@@ -8,7 +8,12 @@ from enum import Enum
 
 class TrainMethod(str, Enum):
     """How per-LF expected distances are estimated (``*_opt``: theta by exact Mallows moment inversion,
-    otherwise ``theta = 1 / E[d]``)."""
+    otherwise ``theta = 1 / E[d]``).
+
+    ``triplet``/``median_triplet``/``lstsq`` use the additive identity ``E d_ab = e_a + e_b``, which
+    underestimates the distance of near-random LFs (Kendall distances saturate). ``sign_triplet`` uses the
+    per-pair identity ``E[z_a z_b] = s_a s_b`` (exact under conditional independence) and is unaffected by
+    masking; see :func:`uws.ranking.label_model.sign_expected_distances`."""
 
     TRIPLET = "triplet"
     TRIPLET_OPT = "triplet_opt"
@@ -16,6 +21,8 @@ class TrainMethod(str, Enum):
     MEDIAN_TRIPLET_OPT = "median_triplet_opt"
     LSTSQ = "lstsq"
     LSTSQ_OPT = "lstsq_opt"
+    SIGN_TRIPLET = "sign_triplet"
+    SIGN_TRIPLET_OPT = "sign_triplet_opt"
 
     @property
     def estimator(self) -> str:

@@ -28,6 +28,53 @@ def as_rankings(L, r_utils: Optional[RankingUtils] = None) -> list[list[Ranking]
     return L
 
 
+def sign_expected_distances(Z: np.ndarray, groups: Optional[Sequence] = None, n_iter: int = 500,
+                            tol: float = 1e-10) -> np.ndarray:
+    """Per-LF expected Kendall distance to the latent ranking from pair-sign agreements.
+
+    With ``z`` the pair signs, conditional independence gives ``M_ab = E[z_a z_b] = s_a s_b``, where
+    ``s_a = E[z_a z_y]`` is LF ``a``'s sign agreement with the latent ranking. ``s`` is fit as the rank-1
+    factorization of the off-diagonal of ``M`` (least squares, weighted by the number of co-observed pairs,
+    initialized from the leading eigenvector), which uses every pair and, unlike per-triplet ratios, is not
+    dominated by noise from near-random partners. Agreements are averaged over the pairs both LFs observe, so
+    masking does not bias the estimate; the returned value is the expected distance of the full (unmasked)
+    LF ranking, ``#pairs * (1 - s_a) / 2``.
+
+    Parameters
+    ----------
+    Z : (n, m, P) array
+        Pair signs of every LF on every example (0 = unobserved).
+    groups : sequence, optional
+        LF families; pairs within a family are excluded from the fit (their errors are correlated).
+    """
+    n, m, P = Z.shape
+    num = np.einsum("nap,nbp->ab", Z, Z)
+    cnt = np.einsum("nap,nbp->ab", np.abs(Z), np.abs(Z))
+    M = np.divide(num, cnt, out=np.zeros_like(num), where=cnt > 0)
+    W = cnt.astype(float)
+    np.fill_diagonal(W, 0.0)
+    if groups is not None:
+        g = np.asarray(groups)
+        W[g[:, None] == g[None, :]] = 0.0
+    if np.any(W.sum(1) == 0):
+        raise ValueError("Some LF shares no observed pairs with any usable partner")
+    # init: leading eigenvector of the off-diagonal agreement matrix (diagonal filled with row means)
+    M0 = np.where(W > 0, M, 0.0)
+    np.fill_diagonal(M0, M0.sum(1) / np.maximum((W > 0).sum(1), 1))
+    vals, vecs = np.linalg.eigh(M0)
+    s = np.abs(vecs[:, -1]) * np.sqrt(max(vals[-1], 1e-12))
+    for _ in range(n_iter):
+        s_old = s.copy()
+        for a in range(m):
+            denom = (W[a] * s**2).sum()
+            if denom > 0:
+                s[a] = (W[a] * M[a] * s).sum() / denom
+        s = np.clip(s, 0.0, 1.0)
+        if np.max(np.abs(s - s_old)) < tol:
+            break
+    return P * (1.0 - s) / 2.0
+
+
 class RankingLabelModel(BaseLabelModel):
     """Weak supervision for rankings (Shin et al., ICLR 2022).
 
@@ -40,7 +87,8 @@ class RankingLabelModel(BaseLabelModel):
     r_utils : RankingUtils
         Shared ranking helper (fixes ``d``, the partial-ranking penalty and legacy mode).
     train_method : str or TrainMethod
-        ``triplet``, ``median_triplet``, ``lstsq`` and their ``*_opt`` variants (exact Mallows inversion).
+        ``triplet``, ``median_triplet``, ``lstsq``, ``sign_triplet`` and their ``*_opt`` variants (exact Mallows
+        inversion); see :class:`uws.config.TrainMethod`.
     inference_rule : str or InferenceRule
         Aggregation rule used by :meth:`predict`.
     theta_bounds : (float, float)
@@ -81,7 +129,11 @@ class RankingLabelModel(BaseLabelModel):
         d = len(L[0][0])
         method = self.config.train_method
         self.D_lf = self.lf_distance_matrix(L, m)
-        raw = individual_distances(self.D_lf, method.estimator, groups=groups, clip=False)
+        if method.estimator == "sign_triplet":
+            Z = np.stack([np.stack([L[i][j].z for j in range(m)]) for i in range(len(L))])
+            raw = sign_expected_distances(Z, groups)
+        else:
+            raw = individual_distances(self.D_lf, method.estimator, groups=groups, clip=False)
         if np.any(raw <= 0):
             warnings.warn(f"Non-positive expected distance estimates {np.round(raw, 4)} were clipped; "
                           "the triplet assumptions may be violated (e.g. correlated LFs).", stacklevel=2)
@@ -144,4 +196,5 @@ class WeakSupRanking(RankingLabelModel):
         super().__init__(r_utils, **kw)
 
 
-__all__ = ["RankingLabelModel", "WeakSupRanking", "TrainMethod", "InferenceRule", "as_rankings"]
+__all__ = ["RankingLabelModel", "WeakSupRanking", "TrainMethod", "InferenceRule", "as_rankings",
+           "sign_expected_distances"]

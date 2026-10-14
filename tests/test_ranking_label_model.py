@@ -33,7 +33,7 @@ def test_triplets_need_three_lfs():
         individual_distances(np.zeros((2, 2)))
 
 
-@pytest.mark.parametrize("method", ["triplet_opt", "median_triplet_opt", "lstsq_opt"])
+@pytest.mark.parametrize("method", ["triplet_opt", "median_triplet_opt", "lstsq_opt", "sign_triplet_opt"])
 def test_theta_ordering_recovered(data, method):
     ru, Y, thetas, L = data
     lm = RankingLabelModel(ru, train_method=method).fit(L)
@@ -114,3 +114,28 @@ def test_save_load(tmp_path, data):
     lm = RankingLabelModel(ru).fit(L[:30])
     lm.save(tmp_path / "m.pkl")
     assert np.allclose(RankingLabelModel.load(tmp_path / "m.pkl").thetas, lm.thetas)
+
+
+def test_sign_triplet_handles_near_random_lfs():
+    rng = np.random.default_rng(1)
+    ru = RankingUtils(5)
+    Y = generate_true_rankings(5, 600, rng, ru)
+    thetas = [0.005, 0.008, 3.0, 0.01, 2.0, 0.007]
+    L = sample_mallows_LFs(Y, 6, thetas, rng=rng)
+    true_e = np.array([np.mean([ru.kendall_tau_distance(row[j], y) for row, y in zip(L, Y)]) for j in range(6)])
+    sign = RankingLabelModel(ru, train_method="sign_triplet").fit(L)
+    additive = RankingLabelModel(ru, train_method="median_triplet").fit(L)
+    assert np.abs(sign.expected_dists - true_e).max() < 1.0
+    assert np.abs(sign.expected_dists - true_e).mean() < np.abs(additive.expected_dists - true_e).mean() / 2
+    sign_opt = RankingLabelModel(ru, train_method="sign_triplet_opt").fit(L)
+    assert ru.mean_kt_distance(sign_opt.predict(L), Y) < 0.06
+
+
+def test_sign_triplet_unbiased_under_masking():
+    rng = np.random.default_rng(2)
+    ru = RankingUtils(6)
+    Y = generate_true_rankings(6, 600, rng, ru)
+    thetas = [0.3, 1.5, 0.6, 2.0, 0.4, 1.0]
+    full = RankingLabelModel(ru, train_method="sign_triplet").fit(sample_mallows_LFs(Y, 6, thetas, rng=rng))
+    part = RankingLabelModel(ru, train_method="sign_triplet").fit(sample_mallows_LFs(Y, 6, thetas, p=0.6, rng=rng))
+    assert np.allclose(full.expected_dists, part.expected_dists, rtol=0.25, atol=0.3)
