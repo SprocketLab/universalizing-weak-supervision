@@ -15,6 +15,19 @@ import time
 import yaml
 
 
+def _jsonable(v):
+    """Tensors / arrays -> (lists of) floats so the summary is plain JSON."""
+    if hasattr(v, "detach"):
+        v = v.detach().cpu().numpy()
+    if hasattr(v, "tolist"):
+        return v.tolist()
+    if isinstance(v, (list, tuple)):
+        return [_jsonable(x) for x in v]
+    if isinstance(v, dict):
+        return {k: _jsonable(x) for k, x in v.items()}
+    return v
+
+
 def _set(conf: dict, dotted: str, value: str):
     keys = dotted.split(".")
     for k in keys[:-1]:
@@ -66,7 +79,7 @@ def main(argv=None):
                                    summary["weak_label_kt_all"], individual_kt)
         wrapper.set_data(X_train, X_test, Y_train, Y_test)
         result = wrapper.train_model(wrapper.get_model())
-        summary["l2r"] = {k: v for k, v in result.items() if isinstance(v, (int, float, str, list))}
+        summary["l2r"] = {k: _jsonable(v) for k, v in result.items() if not k.endswith("_conf")}
     summary["seconds"] = time.time() - t0
 
     out = args.output or os.path.join(root, conf.get("results_path", "."), "summary.json")
