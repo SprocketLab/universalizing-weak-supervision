@@ -1,18 +1,13 @@
+"""Helpers for the synthetic ranking notebooks (built on the ``uws`` package)."""
 
-import sys
-
-sys.path.append('../../')
-sys.path.append('../../core')
-
-from collections import defaultdict 
-
-from ranking_utils import *
-from mallows import *
-from ws_ranking import *
-import numpy as np
-import matplotlib.pyplot as plt
-from ranking_digraph import *
+import random
+from collections import defaultdict
 from math import ceil
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from uws.ranking import Mallows, Ranking, RankingDiGraph, RankingUtils, WeakSupRanking
 
 def get_mask(y,m,p):
     d = len(y)
