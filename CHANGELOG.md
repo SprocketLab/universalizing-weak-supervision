@@ -5,6 +5,13 @@
 First packaged release. The research code under `code/` and `uws/label_model.py` has been reorganized into
 the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials/` and import `uws`.
 
+### Package layout
+- All label models live in `uws.label_model`: `RankingLabelModel`, `ContinuousLabelModel`, `MetricLabelModel`,
+  `GeodesicLabelModel` and `BinaryLabelModel`, together with the shared triplet estimators.
+- End models live in `uws.end_model` (`RankingEndModel`, `GeodesicRegressor`) and every data or LF generator
+  in `uws.synthetic`. `uws.ranking` keeps the ranking toolkit: `Ranking`, Kendall distances, Mallows models
+  and rank aggregation.
+
 ### Packaging
 - `pyproject.toml`, optional extras (`l2r`, `geodesic`, `binary`, `snorkel`, `all`, `dev`, `docs`), Apache-2.0.
 - Vendored Snorkel removed (it was an unmodified 0.9.6 copy); the baseline now uses `pip install snorkel`.
@@ -14,9 +21,9 @@ the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials
   explicit `seed` / `rng` arguments.
 
 ### New
-- `uws.metric.MetricLabelModel`: the label model for any finite metric space (previously notebook-only), with
+- `MetricLabelModel`: the label model for any finite metric space (previously notebook-only), with
   abstains, `predict_proba` and exact exponential-family theta inversion.
-- Shared triplet estimators `uws.utils.individual_distances` (`triplet`, `median_triplet`, `mean_triplet`,
+- Shared triplet estimators `uws.label_model.individual_distances` (`triplet`, `median_triplet`, `mean_triplet`,
   `lstsq`, optional family-aware triplets via `groups`).
 - A common `BaseLabelModel` interface (`fit`, `predict`, `get_weights`, `save`, `load`).
 - `RankingLabelModel` (new name of `WeakSupRanking`, which remains as an alias) with `fit`/`predict`, typed
@@ -30,7 +37,11 @@ the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials
   recovers LF accuracies far better (mean error in normalized Kendall distance 0.006 vs 0.24 for near-random LFs)
   and gives the best end model from 6 LFs on. It needs at least three better-than-random LFs. Not the default
   (the paper's estimator is); both are supported.
-- `uws.geodesic`: `GeodesicRegressor`, `LFGenerator` and data generators from the geodesic notebook.
+- `GeodesicRegressor`, `LFGenerator` and the data generators from the geodesic notebook are part of the package.
+- `uws.end_model.RankingEndModel`: the paper's ListMLE ranker in plain PyTorch, with `fit`, `predict` and
+  `score`. It normalizes features and activations within each item set, as the PT-Ranking setup did, and needs
+  no files on disk. On board games with true labels it matches the PT-Ranking pipeline (test Kendall distance
+  0.160 to 0.165, against 0.160).
 
 ### Algorithmic corrections (`legacy=True` / `sampler="legacy"` restore the paper's behavior)
 - **Kemeny**: `kemeny`/`weighted_kemeny` now compute the true (weighted) Kemeny ranking (exact dynamic program

@@ -7,160 +7,182 @@
 
 ![framework](assets/uws_figure.png)
 
-Weak supervision trains models from noisy, cheap label sources (heuristics, other models, crowd workers)
-instead of hand labels. Most tools only handle classification. **`uws` handles any label type**: rankings,
-real numbers, points in a graph or any other finite metric space, and points on a manifold.
+`uws` is a weak supervision library for labels that are not just classes: rankings, real numbers, nodes
+of a graph, points in hyperbolic space, and more. It accompanies the ICLR 2022 paper
+[Universalizing Weak Supervision](https://arxiv.org/abs/2112.03865).
 
-It is the library for the ICLR 2022 paper
-[Universalizing Weak Supervision](https://arxiv.org/abs/2112.03865)
-(Changho Shin, Winfred Li, Harit Vishwakarma, Nicholas Roberts, Frederic Sala).
+## Contents
 
-## The idea in one paragraph
+- [Motivation](#motivation)
+- [Installation](#installation)
+- [Sample Usage](#sample-usage)
+- [Tutorials](#tutorials)
+- [Reproducing the Paper](#reproducing-the-paper)
+- [References](#references)
+- [Release Notes](#release-notes)
+- [Developer Guidelines](#developer-guidelines)
+- [Citation](#citation)
 
-Each label source, or *labeling function* (LF), is modeled as a noisy copy of the true label: the further an
-output is from the truth, the less likely it is, and each LF has its own accuracy parameter θ. These θ can be
-estimated **without any labels**, just from how often the LFs agree with each other. The label model then
-combines the LF outputs with an accuracy-weighted average that makes sense for the label type (for rankings,
-a weighted Kemeny ranking; for real values, a posterior mean).
+## Motivation
 
-| Label type | Label model | How LFs are combined |
-|---|---|---|
-| Full or partial rankings | `uws.ranking.RankingLabelModel` | weighted Kemeny (also pairwise majority, position estimation) |
-| Real values | `uws.regression.ContinuousLabelModel` | Gaussian posterior mean |
-| Any finite metric space | `uws.metric.MetricLabelModel` | weighted Fréchet mean |
-| Manifolds (e.g. hyperbolic space) | `uws.geodesic.GeodesicLabelModel` | Riemannian Fréchet mean |
-| Binary | `uws.binary.BinaryLabelModel` | FlyingSquid |
+Weak supervision replaces hand-labeled training data with labeling functions: heuristics, existing
+models, or crowd workers that each produce noisy labels. A label model learns how accurate each labeling
+function is, without seeing any ground truth, and combines their votes into training labels. Systems such
+as Snorkel and Snorkel MeTaL made this practical, but their label models only handle classification.
+
+Many tasks have richer labels. A recommender is trained on rankings, a pricing model on real numbers, a
+taxonomy classifier on nodes of a tree. This library extends weak supervision to those settings. Each
+labeling function is treated as a noisy copy of the true label in a metric space, and its accuracy is
+estimated from how often it agrees with the other labeling functions. The label model then combines the
+labeling functions with an accuracy-weighted average that suits the label space. For rankings that is a
+weighted Kemeny ranking, and for real values it is a posterior mean.
+
+The same recipe covers full and partial rankings, real-valued labels, any finite metric space, and
+Riemannian manifolds such as hyperbolic space. The paper also proves finite-sample error bounds for the
+accuracy estimates.
 
 ## Installation
 
 ```bash
-pip install uws                  # rankings, regression, metric spaces
-pip install "uws[geodesic]"      # adds manifold-valued labels (torch, geoopt)
-pip install "uws[l2r]"           # adds learning-to-rank end models (torch)
-pip install "uws[all]"           # everything, including the Snorkel baseline
+pip install uws
 ```
 
-To work on the code: `git clone` this repository and run `pip install -e ".[dev,all]"`. Python 3.9 or newer.
-
-## Quickstart: rankings
-
-Six LFs rank the same 5 items. Three of them are essentially random; the label model has to figure that out
-on its own.
-
-```python
-import numpy as np
-from uws.ranking import RankingLabelModel, RankingUtils, generate_true_rankings, sample_mallows_LFs
-
-rng = np.random.default_rng(0)
-r_utils = RankingUtils(d=5)                         # rankings of 5 items
-Y = generate_true_rankings(5, 1000, rng, r_utils)   # true rankings (only used for evaluation here)
-L = sample_mallows_LFs(Y, 6, [0.01, 0.01, 0.01, 0.5, 1.0, 2.0], rng=rng)   # 6 LFs, 3 near-random
-
-lm = RankingLabelModel(r_utils, train_method="sign_triplet_opt")   # see "Choosing an estimator" below
-lm.fit(L)                                   # no labels needed
-Y_hat = lm.predict(L)                       # weighted Kemeny aggregation
-
-print(lm.thetas)                            # [0.1  0.1  0.1  0.55 1.08 1.88]: the random LFs are found
-print(r_utils.mean_kt_distance(Y_hat, Y))   # 0.061 (normalized Kendall tau distance, lower is better)
-print(r_utils.mean_kt_distance(lm.predict(L, inference_rule="kemeny"), Y))   # 0.186 without weights
-```
-
-Every label model follows the same pattern: `fit(L)`, `predict(L)`, `get_weights()`, `save()` / `load()`.
-
-### Choosing an estimator for rankings
-
-There are two ways to estimate the LF accuracies, and both are supported:
-
-| `train_method` | What it does | Use it when |
-|---|---|---|
-| `median_triplet_opt` (default), `triplet_opt` | The paper's method: assumes LF-to-LF distances add up, `E d(a, b) ≈ E d(a, y) + E d(b, y)`, and solves for each LF from triplets. | You have few LFs (3 to 5), or you want the paper's behavior. |
-| `sign_triplet_opt` | Looks at every pair of items separately. Two independent LFs agree on a pair at a rate that factors as `s_a · s_b`, which is exact for Kendall distance. Fits the `s` by least squares over all LF pairs. | You have 6 or more LFs and some of them may be close to random. |
-
-Why the difference matters: two random rankings disagree on half of all pairs, not on "half plus half". The
-additive rule therefore thinks random LFs are much better than they are and gives them almost as much weight
-as good ones. On the LFs from the paper's Figure 2 experiment:
-
-![θ recovery](benchmarks/paper_ranking/figures/theta_recovery.png)
-
-The pair-sign fit needs at least three informative LFs. With only one or two good LFs (3 and 6 LFs in the
-paper's setup, the outliers above) it cannot tell their accuracies apart: at 6 LFs the end model still comes
-out ahead, at 3 LFs it is worse than the paper's estimator.
-
-## Other label types
-
-Real values, with the posterior variance for each prediction:
-
-```python
-from uws.regression import ContinuousLabelModel
-
-lm = ContinuousLabelModel().fit(L_train, var_Y)     # L_train: (n, m) array; var_Y: variance of the label
-y_hat, var = lm.predict(L_test, return_var=True)
-```
-
-Any finite metric space, here the nodes of a graph with shortest-path distances `D`:
-
-```python
-from uws.metric import MetricLabelModel
-
-lm = MetricLabelModel(D).fit(L)    # L: (n, m) node indices, -1 where an LF abstains
-y_hat = lm.predict(L)
-proba = lm.predict_proba(L)        # distribution over the nodes for each example
-```
-
-## Reproducing the paper
-
-The notebooks in [`tutorials/`](tutorials) walk through the experiments:
-
-* **Rankings on real data:** `tutorials/{boardgames,movies}/RankingExperiments.ipynb`. Settings live in
-  `configs/{boardgames,movies}_ranking_experiment.yaml`; the main ones are the number of LFs (`num_LFs`), the
-  aggregation rule (`inference_rule`) and, for partial rankings, the fraction of observed items (`p`).
-* **Synthetic rankings:** `tutorials/synthetic/`; `Ranking-Example.ipynb` is the shortest introduction.
-* **Regression:** `tutorials/{boardgames,movies}/RegressionExperiments.ipynb`,
-  `tutorials/synthetic/Regression-Experiments.ipynb`.
-* **Hyperbolic (geodesic) regression:** `tutorials/geodesic-regression/geodesic_regression.ipynb`.
-* **Generic metric spaces:** `tutorials/metric-spaces/generic_metric_spaces.ipynb`.
-
-The real-data ranking pipeline also runs from the command line:
+Optional parts need extra dependencies:
 
 ```bash
-uws-experiment configs/boardgames_ranking_experiment.yaml --project-root . \
-    --set weak_sup_conf.num_LFs=6 --train
+pip install "uws[l2r]"        # ranking end model (torch)
+pip install "uws[geodesic]"   # manifold-valued labels (torch, geoopt)
+pip install "uws[binary]"     # FlyingSquid binary label model
+pip install "uws[all]"        # everything, including the Snorkel baseline
 ```
 
-[`benchmarks/paper_ranking/`](benchmarks/paper_ranking) re-runs Figure 2 of the paper (end-model quality as
-the number of LFs grows). The method ranking from the paper reproduces (ours beats majority vote, which beats
-Snorkel), and the numbers are close. The fully supervised baselines come out stronger than in the paper,
-so the claim that weak supervision beats training on 20% of the labels holds only for the newer
-`sign_triplet_opt` estimator with 15 or more LFs. The full tables are in
-[`benchmarks/paper_ranking/summary_tables.md`](benchmarks/paper_ranking/summary_tables.md).
-
-### What changed since the paper's code
-
-Version 1.0 fixes bugs in the original research code and replaces a few approximations
-([CHANGELOG.md](CHANGELOG.md) has the full list). The ones that change numbers:
-
-* `kemeny` now finds the true Kemeny ranking. The paper picked the best of the LFs' own rankings; that rule
-  is still available as `kemeny_medoid`.
-* Kendall distance for partial rankings follows Fagin et al. (2006).
-* Mallows sampling is exact.
-* The Gaussian label model no longer inverts ill-conditioned matrices, so it does not blow up with
-  correlated or many LFs.
-
-To get the paper's behavior back, pass `legacy=True` to `RankingUtils`, `ContinuousLabelModel` or
-`GeodesicLabelModel`, and `sampler="legacy"` to `Mallows`. In experiment configs, set
-`weak_sup_conf.legacy: true` and `data_conf.legacy_sampling: true`.
-
-## Development
+To install from source and run the tests:
 
 ```bash
+git clone https://github.com/SprocketLab/universalizing-weak-supervision
+cd universalizing-weak-supervision
 pip install -e ".[dev,all]"
-pre-commit install
 pytest
-ruff check uws tests
 ```
 
-Build the documentation with `pip install -e ".[docs]" && sphinx-build docs docs/_build`.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules on changes that affect numerical results.
+`uws` needs Python 3.9 or newer.
+
+## Sample Usage
+
+This sample learns to rank sets of items from labeling functions that each output a ranking.
+
+```python
+"""
+n = number of item sets (examples)
+m = number of labeling functions
+d = number of items per set
+f = number of features per item
+
+L_train: n lists of m rankings (uws.ranking.Ranking), or an (n, m, d) array of item orders
+X_train, X_test: (n, d, f) arrays of item features, the end model's input
+Y_test: true rankings of the test sets, for evaluation only
+"""
+
+from uws.label_model import RankingLabelModel
+from uws.end_model import RankingEndModel
+from uws.ranking import RankingUtils
+
+# Learn labeling-function accuracies and produce training labels
+label_model = RankingLabelModel(RankingUtils(d))
+label_model.fit(L_train)
+Y_train = label_model.predict(L_train)
+
+# Train a ranking model on the generated labels
+end_model = RankingEndModel(n_features=f)
+end_model.fit(X_train, Y_train)
+
+# Evaluate: mean normalized Kendall tau distance to the true rankings (lower is better)
+score = end_model.score(X_test, Y_test, metric="kendall_tau")
+```
+
+`label_model.thetas` holds the estimated accuracy of each labeling function. By default the label model
+uses the paper's estimator. If you have six or more labeling functions and some of them may be close to
+random, `RankingLabelModel(..., train_method="sign_triplet_opt")` usually estimates their accuracies much
+better. The [documentation](https://universalizing-weak-supervision.readthedocs.io) explains the
+difference.
+
+The other label models work the same way, with `fit(L)` and `predict(L)`:
+
+| Labels | Label model in `uws.label_model` | What `L` contains |
+|---|---|---|
+| Full or partial rankings | `RankingLabelModel(RankingUtils(d))` | rankings, as above |
+| Real values | `ContinuousLabelModel()` | an (n, m) float array; `fit` also takes the label variance |
+| Any finite metric space | `MetricLabelModel(D)` with a distance matrix `D` | an (n, m) array of label indices, -1 to abstain |
+| Points on a manifold | `GeodesicLabelModel(manifold)` | m tensors of shape (n, dim) |
+| Binary | `BinaryLabelModel(m)`, a wrapper around FlyingSquid | an (n, m) array of votes in {-1, 0, +1} |
+
+`uws.synthetic` generates labeling functions with known accuracies for every label type, which is a quick
+way to try the models out.
+
+## Tutorials
+
+The notebooks in [`tutorials/`](tutorials) walk through the paper's experiments.
+
+| Topic | Notebook |
+|---|---|
+| A first ranking example | `tutorials/synthetic/Ranking-Example.ipynb` |
+| Rankings on real data (board games, movies) | `tutorials/{boardgames,movies}/RankingExperiments.ipynb` |
+| Recovering rankings from synthetic labeling functions | `tutorials/synthetic/{Full,Partial}-Rankings-Experiments-Center-Recovery.ipynb` |
+| Regression | `tutorials/synthetic/Regression-Experiments.ipynb`, `tutorials/{boardgames,movies}/RegressionExperiments.ipynb` |
+| Hyperbolic (geodesic) regression | `tutorials/geodesic-regression/geodesic_regression.ipynb` |
+| Generic finite metric spaces | `tutorials/metric-spaces/generic_metric_spaces.ipynb` |
+
+## Reproducing the Paper
+
+[`benchmarks/paper_ranking/`](benchmarks/paper_ranking) re-runs the paper's main ranking experiment
+(Figure 2), which measures how a ranking model trained on weak labels improves as labeling functions are
+added. The paper's comparison holds up: the UWS label model beats majority vote, which beats Snorkel, and
+the numbers are close to the published ones. The fully supervised baselines come out somewhat stronger
+than in the paper, so the claim that weak supervision beats training on 20% of the true labels only holds
+for the newer `sign_triplet_opt` estimator with 15 or more labeling functions. The full tables are in
+[`benchmarks/paper_ranking/summary_tables.md`](benchmarks/paper_ranking/summary_tables.md), and the other
+scripts in [`benchmarks/`](benchmarks) check that legacy mode matches the original code.
+
+To reproduce the original code's behavior, pass `legacy=True` to `RankingUtils`, `ContinuousLabelModel`
+or `GeodesicLabelModel`. In the experiment configs, set `weak_sup_conf.legacy` and
+`data_conf.legacy_sampling` to `true`.
+
+## References
+
+- Changho Shin, Winfred Li, Harit Vishwakarma, Nicholas Roberts, Frederic Sala.
+  [Universalizing Weak Supervision](https://arxiv.org/abs/2112.03865). ICLR 2022.
+- Alexander Ratner, Stephen Bach, Henry Ehrenberg, Jason Fries, Sen Wu, Christopher Ré.
+  [Snorkel: Rapid Training Data Creation with Weak Supervision](https://arxiv.org/abs/1711.10160). VLDB 2018.
+- Alexander Ratner, Braden Hancock, Jared Dunnmon, Frederic Sala, Shreyash Pandey, Christopher Ré.
+  [Training Complex Models with Multi-Task Weak Supervision](https://arxiv.org/abs/1810.02840). AAAI 2019.
+- Daniel Fu, Mayee Chen, Frederic Sala, Sarah Hooper, Kayvon Fatahalian, Christopher Ré.
+  [Fast and Three-rious: Speeding Up Weak Supervision with Triplet Methods](https://arxiv.org/abs/2002.11955). ICML 2020.
+- Ronald Fagin, Ravi Kumar, Mohammad Mahdian, D. Sivakumar, Erik Vee.
+  Comparing Partial Rankings. SIAM Journal on Discrete Mathematics, 2006.
+
+## Release Notes
+
+### Major changes in v1.0
+
+- The research code is now an installable package with tests, documentation and continuous integration.
+  Label models live in `uws.label_model`, end models in `uws.end_model`, and generators in `uws.synthetic`.
+- Many bugs in the original code are fixed, and several approximations are replaced with exact methods.
+  `kemeny` now finds the true Kemeny ranking, partial rankings use the Kendall distance of Fagin et al.,
+  and Mallows sampling is exact. The paper's behavior remains available through `legacy=True`.
+- The Gaussian label model no longer inverts ill-conditioned matrices, so correlated or numerous labeling
+  functions no longer make it blow up.
+- New: `MetricLabelModel` for any finite metric space, the `RankingEndModel` ranker, and the
+  `sign_triplet_opt` estimator for rankings.
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete list.
+
+## Developer Guidelines
+
+Set up a development install with `pip install -e ".[dev,all]"` and `pre-commit install`. Before sending a
+change, run `pytest` and `ruff check uws tests`. If a change alters numerical results, keep the old
+behavior reachable through a `legacy` option and describe the change in `CHANGELOG.md`.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the details. To build the documentation, run
+`pip install -e ".[docs]"` and then `sphinx-build docs docs/_build`.
 
 ## Citation
 
