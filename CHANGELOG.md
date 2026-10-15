@@ -26,7 +26,10 @@ the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials
   additive distance identity, which underestimates near-random LFs because Kendall distances saturate. Masking
   does not bias it. On synthetic Mallows data it matches or beats `median_triplet_opt` everywhere tested
   (weighted-Kemeny KT 0.114 → 0.025 with four near-random LFs out of six; 0.184 → 0.125 for partial rankings with
-  p = 0.5) and is close to inference with the true thetas. Not the default yet (the paper's method is).
+  p = 0.5) and is close to inference with the true thetas. On the LFs of the paper's Figure 2 experiment it
+  recovers LF accuracies far better (mean error in normalized Kendall distance 0.006 vs 0.24 for near-random LFs)
+  and gives the best end model from 6 LFs on. It needs at least three better-than-random LFs. Not the default
+  (the paper's estimator is); both are supported.
 - `uws.geodesic`: `GeodesicRegressor`, `LFGenerator` and data generators from the geodesic notebook.
 
 ### Algorithmic corrections (`legacy=True` / `sampler="legacy"` restore the paper's behavior)

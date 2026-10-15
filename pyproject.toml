@@ -41,7 +41,7 @@ docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-autodoc-typehints"]
 tutorials = ["jupyter", "matplotlib", "networkx"]
 
 [project.urls]
-Homepage = "https://github.com/Sala-Group/universalizing-weak-supervision"
+Homepage = "https://github.com/SprocketLab/universalizing-weak-supervision"
 Paper = "https://arxiv.org/abs/2112.03865"
 
 [project.scripts]
