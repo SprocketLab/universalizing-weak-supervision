@@ -285,3 +285,13 @@ def ranking_to_score(Y, d: int, highest_first: bool):
 
     Y_rank = torch.tensor(perm2ranking(Y, d), dtype=torch.float32)
     return d - Y_rank if highest_first else Y_rank
+
+
+def as_rankings(L, r_utils: Optional[RankingUtils] = None) -> list[list[Ranking]]:
+    """Accept ``L`` as nested lists of :class:`Ranking` or an int array of permutations ``(n, m, d)``."""
+    if isinstance(L, np.ndarray):
+        if L.ndim != 3:
+            raise ValueError(f"Expected an (n, m, d) permutation array, got shape {L.shape}")
+        r_utils = RankingUtils(L.shape[2]) if r_utils is None else r_utils
+        return [[Ranking(p, r_utils) for p in row] for row in L]
+    return L

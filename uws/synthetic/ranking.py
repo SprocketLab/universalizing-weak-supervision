@@ -8,8 +8,8 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from .mallows import Mallows
-from .ranking import Ranking, RankingUtils
+from ..ranking.mallows import Mallows
+from ..ranking.ranking import Ranking, RankingUtils
 
 
 def generate_true_rankings(d: int, n: int, rng: Optional[np.random.Generator] = None,
@@ -90,7 +90,7 @@ def generate_synthetic_LFs(Y, m: int, seed: Optional[int] = None, good_ratio: fl
 
 
 def estimate_theta(L, train_method: str = "triplet_opt") -> np.ndarray:
-    from .label_model import RankingLabelModel
+    from ..label_model.ranking import RankingLabelModel
 
     r_utils = L[0][0].r_utils
     return RankingLabelModel(r_utils, train_method=train_method).fit(L).thetas

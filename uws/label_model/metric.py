@@ -7,8 +7,8 @@ from typing import Callable, Optional, Sequence, Union
 
 import numpy as np
 
-from ..base import BaseLabelModel
-from ..utils.triplets import individual_distances
+from .base import BaseLabelModel
+from .triplets import individual_distances
 
 
 class MetricLabelModel(BaseLabelModel):
@@ -31,7 +31,7 @@ class MetricLabelModel(BaseLabelModel):
     center_power : float
         Exponent of the distance in the Fréchet mean (2 = mean, 1 = median).
     method : str
-        Triplet estimator (see :func:`uws.utils.triplets.individual_distances`).
+        Triplet estimator (see :func:`uws.label_model.triplets.individual_distances`).
     exact_theta : bool
         Invert ``E_theta[d^power] = e`` under the exponential family, averaged over centers (finite ``D``).
     abstain : int
@@ -150,18 +150,3 @@ class MetricLabelModel(BaseLabelModel):
         acc = float(np.mean([a == b for a, b in zip(Y_hat, Y)]))
         md = float(np.mean([self._dist(a, b) for a, b in zip(Y_hat, Y)]))
         return {"accuracy": acc, "mean_distance": md}
-
-
-def sample_metric_lfs(D: np.ndarray, Y: np.ndarray, thetas, power: float = 1.0,
-                      rng: Optional[np.random.Generator] = None) -> np.ndarray:
-    """Sample LF outputs ``P(x | y) ∝ exp(-theta d(x, y)^power)`` for every true label in ``Y``."""
-    rng = np.random.default_rng() if rng is None else rng
-    D = np.asarray(D, dtype=float)
-    k = D.shape[0]
-    L = np.zeros((len(Y), len(thetas)), dtype=int)
-    for j, theta in enumerate(thetas):
-        P = np.exp(-theta * D**power)
-        P /= P.sum(1, keepdims=True)
-        cum = P[Y].cumsum(1)
-        L[:, j] = np.minimum((rng.random((len(Y), 1)) > cum).sum(1), k - 1)
-    return L

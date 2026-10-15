@@ -7,7 +7,8 @@ from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
 
-from uws.ranking import Mallows, Ranking, RankingDiGraph, RankingUtils, WeakSupRanking
+from uws.label_model import WeakSupRanking
+from uws.ranking import Mallows, Ranking, RankingDiGraph, RankingUtils
 
 def get_mask(y,m,p):
     d = len(y)

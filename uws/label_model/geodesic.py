@@ -6,8 +6,8 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from ..base import BaseLabelModel
-from ..utils.triplets import individual_distances
+from .base import BaseLabelModel
+from .triplets import individual_distances
 
 
 def _require_geoopt():

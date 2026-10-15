@@ -10,7 +10,7 @@ from typing import Optional, Union
 import numpy as np
 from scipy.linalg import LinAlgError, cho_factor, cho_solve
 
-from ..base import BaseLabelModel
+from .base import BaseLabelModel
 
 ESTIMATORS = ("triplet", "median_triplet", "lstsq")
 

@@ -12,7 +12,7 @@ from sklearn.datasets import make_classification
 from sklearn.metrics import confusion_matrix, top_k_accuracy_score
 from sklearn.model_selection import train_test_split
 
-from ..ranking.label_model import RankingLabelModel
+from ..label_model.ranking import RankingLabelModel
 from ..ranking.mallows import Mallows
 from ..ranking.ranking import Ranking, RankingUtils
 

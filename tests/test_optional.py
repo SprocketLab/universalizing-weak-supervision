@@ -7,7 +7,8 @@ def test_geodesic_label_model():
     pytest.importorskip("geoopt")
     from geoopt.manifolds.lorentz import Lorentz
 
-    from uws.geodesic import GeodesicLabelModel, LFGenerator, generate_data, sample_params
+    from uws.label_model import GeodesicLabelModel
+    from uws.synthetic import LFGenerator, generate_data, sample_params
 
     torch.manual_seed(0)
     man = Lorentz(k=1.0)
@@ -34,7 +35,8 @@ def test_ptranking_vendored_import():
 def test_snorkel_ranking_baseline():
     pytest.importorskip("snorkel")
     from uws.experiments.real_workflow import snorkel_rankings
-    from uws.ranking import RankingUtils, generate_true_rankings, sample_mallows_LFs
+    from uws.ranking import RankingUtils
+    from uws.synthetic import generate_true_rankings, sample_mallows_LFs
 
     rng = np.random.default_rng(0)
     ru = RankingUtils(3)

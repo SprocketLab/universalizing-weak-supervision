@@ -27,7 +27,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-from uws.ranking import Mallows, RankingLabelModel, RankingUtils  # noqa: E402
+from uws.label_model import RankingLabelModel  # noqa: E402
+from uws.ranking import Mallows, RankingUtils  # noqa: E402
 
 PAPER_LFS = dict(good=(0.2, 1.0), bad=(0.001, 0.01))
 ESTIMATORS = {

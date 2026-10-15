@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from uws.metric import MetricLabelModel, sample_metric_lfs
+from uws.label_model import MetricLabelModel
+from uws.synthetic import sample_metric_lfs
 
 
 @pytest.fixture(scope="module")

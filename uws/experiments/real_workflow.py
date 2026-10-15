@@ -9,10 +9,10 @@ import warnings
 
 import numpy as np
 
+from ..label_model.ranking import RankingLabelModel
 from ..labeling.ranking import FeatureRankingLF
-from ..ranking.label_model import RankingLabelModel
 from ..ranking.ranking import Ranking, RankingUtils
-from ..ranking.synthetic import generate_synthetic_LFs
+from ..synthetic.ranking import generate_synthetic_LFs
 
 WEAK_LABEL_FILE_NAME = "weak_labels.pkl"
 SYNTHETIC_WEAK_LABEL_FILE_NAME = "synthetic_weak_labels.pkl"

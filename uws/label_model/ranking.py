@@ -1,4 +1,4 @@
-"""Label model for (full or partial) rankings: Mallows LFs, triplet parameter estimation."""
+"""Label model for full and partial rankings: Mallows LFs, triplet parameter estimation."""
 
 from __future__ import annotations
 
@@ -8,24 +8,14 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from ..base import BaseLabelModel
-from ..config import InferenceRule, RankingConfig, TrainMethod
-from ..utils.triplets import individual_distances, rank_one_fit
-from . import aggregation
-from .mallows import Mallows
-from .ranking import Ranking, RankingUtils
+from ..config import InferenceRule, RankingConfig
+from ..ranking import aggregation
+from ..ranking.mallows import Mallows
+from ..ranking.ranking import Ranking, RankingUtils, as_rankings
+from .base import BaseLabelModel
+from .triplets import individual_distances, rank_one_fit
 
 logger = logging.getLogger(__name__)
-
-
-def as_rankings(L, r_utils: Optional[RankingUtils] = None) -> list[list[Ranking]]:
-    """Accept ``L`` as nested lists of :class:`Ranking` or an int array of permutations ``(n, m, d)``."""
-    if isinstance(L, np.ndarray):
-        if L.ndim != 3:
-            raise ValueError(f"Expected an (n, m, d) permutation array, got shape {L.shape}")
-        r_utils = RankingUtils(L.shape[2]) if r_utils is None else r_utils
-        return [[Ranking(p, r_utils) for p in row] for row in L]
-    return L
 
 
 def sign_expected_distances(Z: np.ndarray, groups: Optional[Sequence] = None) -> np.ndarray:
@@ -181,5 +171,4 @@ class WeakSupRanking(RankingLabelModel):
         super().__init__(r_utils, **kw)
 
 
-__all__ = ["RankingLabelModel", "WeakSupRanking", "TrainMethod", "InferenceRule", "as_rankings",
-           "sign_expected_distances"]
+__all__ = ["RankingLabelModel", "WeakSupRanking", "sign_expected_distances"]

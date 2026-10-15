@@ -1,6 +1,7 @@
 import numpy as np, warnings
 warnings.simplefilter('ignore')
-from uws.regression import *
+from uws.label_model import ContinuousLabelModel
+from uws.synthetic import generate_lfs, generate_synthetic_xy
 CFG={'legacy':dict(legacy=True),'emp':dict(solver='empirical'),'struct':{},'emp-nc':dict(solver='empirical',center=False),'struct-nc':dict(center=False),'struct-nc-lstsq':dict(center=False,estimator='lstsq')}
 res={}
 for seed in range(20):

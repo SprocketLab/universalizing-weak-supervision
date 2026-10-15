@@ -8,8 +8,9 @@ import mallows as omal
 _dlp, _ddlp = omal.Mallows.d_log_partition, omal.Mallows.d_d_log_partition
 omal.Mallows.d_log_partition = staticmethod(lambda t, d: _dlp(float(np.squeeze(t)), d))  # old code + numpy>=2
 omal.Mallows.d_d_log_partition = staticmethod(lambda t, d: _ddlp(float(np.squeeze(t)), d))
-from uws.ranking import Ranking, RankingUtils, RankingLabelModel, sample_mallows_LFs, generate_true_rankings
-from uws.regression import ContinuousLabelModel, generate_lfs, generate_synthetic_xy
+from uws.label_model import ContinuousLabelModel, RankingLabelModel
+from uws.ranking import Ranking, RankingUtils
+from uws.synthetic import generate_lfs, generate_synthetic_xy, generate_true_rankings, sample_mallows_LFs
 
 rng = np.random.default_rng(0)
 for d, p in [(5, None), (6, 0.6), (8, 0.4)]:

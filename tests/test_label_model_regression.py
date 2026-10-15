@@ -3,7 +3,8 @@ import warnings
 import numpy as np
 import pytest
 
-from uws.regression import ContinuousLabelModel, generate_lfs, generate_synthetic_xy
+from uws.label_model import ContinuousLabelModel
+from uws.synthetic import generate_lfs, generate_synthetic_xy
 
 
 @pytest.fixture(scope="module")

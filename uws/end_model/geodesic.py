@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .synthetic import sample_params
+from ..synthetic.geodesic import sample_params
 
 
 class GeodesicRegressor:

@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from uws.ranking import RankingLabelModel, RankingUtils, WeakSupRanking, generate_true_rankings, sample_mallows_LFs
-from uws.utils import individual_distances
+from uws.label_model import RankingLabelModel, WeakSupRanking, individual_distances
+from uws.ranking import RankingUtils
+from uws.synthetic import generate_true_rankings, sample_mallows_LFs
 
 
 @pytest.fixture(scope="module")

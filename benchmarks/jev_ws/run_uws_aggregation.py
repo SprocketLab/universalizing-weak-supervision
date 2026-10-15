@@ -9,12 +9,12 @@ Aggregators (per head; a head kind a method does not cover falls back to ``uws_l
 
 * ``uws_vote``     weighted vote with log-odds weights from label-free accuracy estimates. Under symmetric
                    K-class noise the centered agreement ``(K P(a=b) - 1)/(K-1) = s_a s_b``, which is fit as a rank-1
-                   factorization over all LF pairs (``uws.utils.rank_one_fit``).
+                   factorization over all LF pairs (``uws.label_model.rank_one_fit``).
 * ``uws_logpool``  weighted geometric pool of the LF probability vectors (same weights).
 * ``uws_linpool``  weighted linear pool of the LF probability vectors (same weights).
-* ``uws_gauss``    score heads: Gaussian label model (``uws.regression.ContinuousLabelModel``) on each LF's expected
+* ``uws_gauss``    score heads: Gaussian label model (``uws.label_model.ContinuousLabelModel``) on each LF's expected
                    score; binary heads: the same model on the LF log-odds.
-* ``uws_ordinal``  score heads: ``uws.metric.MetricLabelModel`` with the ordinal metric ``|i - j|``.
+* ``uws_ordinal``  score heads: ``uws.label_model.MetricLabelModel`` with the ordinal metric ``|i - j|``.
 * ``*_fam``        the same, with accuracies estimated only from cross-family LF pairs (LFs sharing a base model
                    make correlated errors, which violates the conditional-independence assumption).
 * ``uws_tuned``    the UWS method selected on the other fold (like ``snorkel_tuned``).
@@ -50,9 +50,7 @@ from csone.config import ALL_TASKS, CATEGORY, POOLS, RESULTS_DIR, TIER_OF, TIERS
 from csone.tasks import task as get_task  # noqa: E402
 from run_tuned_aggregation import Tuner, shift  # noqa: E402
 
-from uws.metric import MetricLabelModel  # noqa: E402
-from uws.regression import ContinuousLabelModel  # noqa: E402
-from uws.utils import rank_one_fit  # noqa: E402
+from uws.label_model import ContinuousLabelModel, MetricLabelModel, rank_one_fit  # noqa: E402
 
 FAMILY = {"laya-en": "laya", "laya-multi": "laya", "von": "von", "kev-0.8b": "qwen", "kev-4b": "qwen",
           "kev-9b": "qwen", "nimble-9b": "qwen", "nimble-9b-v3": "qwen", "jev-gemma4-26b": "gemma",

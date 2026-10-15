@@ -13,7 +13,7 @@ class TrainMethod(str, Enum):
     ``triplet``/``median_triplet``/``lstsq`` use the additive identity ``E d_ab = e_a + e_b``, which
     underestimates the distance of near-random LFs (Kendall distances saturate). ``sign_triplet`` uses the
     per-pair identity ``E[z_a z_b] = s_a s_b`` (exact under conditional independence) and is unaffected by
-    masking; see :func:`uws.ranking.label_model.sign_expected_distances`."""
+    masking; see :func:`uws.label_model.ranking.sign_expected_distances`."""
 
     TRIPLET = "triplet"
     TRIPLET_OPT = "triplet_opt"

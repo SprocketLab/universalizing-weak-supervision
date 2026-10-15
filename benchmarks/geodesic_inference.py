@@ -1,7 +1,8 @@
 import numpy as np, torch, time, warnings
 warnings.simplefilter('ignore')
 from geoopt.manifolds.lorentz import Lorentz
-from uws.geodesic import *
+from uws.label_model import GeodesicLabelModel
+from uws.synthetic import LFGenerator, generate_data, sample_params
 res={}
 for seed in range(5):
     torch.manual_seed(seed)
