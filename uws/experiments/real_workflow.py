@@ -42,8 +42,10 @@ def get_weak_labels(dataset, weak_sup_conf: dict, root_path: str = "."):
     ``weak_sup_conf`` keys: ``lf_features``, ``lf_features_highest_first_flag``, ``num_LFs``,
     ``checkpoint_path``, ``recreate_if_exists``, ``synthetic`` (Mallows LFs instead of feature LFs, with
     optional ``good_*_theta``/``bad_*_theta``, ``p``), ``seed``, ``train_method``, ``inference_rule``
-    (``snorkel`` for the baseline).
+    (``snorkel`` for the baseline) and ``legacy`` (the paper code's Kendall distance, medoid "Kemeny",
+    Mallows sampler and theta draws).
     """
+    legacy = bool(weak_sup_conf.get("legacy", False))
     m = weak_sup_conf.get("num_LFs") or len(weak_sup_conf["lf_features"])
     seed = weak_sup_conf.get("seed")
     if seed is None:
@@ -63,7 +65,8 @@ def get_weak_labels(dataset, weak_sup_conf: dict, root_path: str = "."):
         if synthetic:
             kw = {k: weak_sup_conf[k] for k in ("good_max_theta", "good_min_theta", "bad_max_theta",
                                                  "bad_min_theta") if weak_sup_conf.get(k) is not None}
-            L = generate_synthetic_LFs(dataset.Y, m, seed=seed, p=weak_sup_conf.get("p"), **kw)
+            L = generate_synthetic_LFs(dataset.Y, m, seed=seed, p=weak_sup_conf.get("p"), legacy_thetas=legacy,
+                                       sampler="legacy" if legacy else "rim", **kw)
         else:
             L = generate_LFs(dataset, lst_lfs)
         with open(weak_label_file, "wb") as fd:
@@ -74,7 +77,7 @@ def get_weak_labels(dataset, weak_sup_conf: dict, root_path: str = "."):
         with open(weak_label_file, "rb") as fd:
             L = pickle.load(fd)
 
-    r_utils = RankingUtils(d)
+    r_utils = RankingUtils(d, legacy=legacy)
     m = len(L[0])
     individual_kt = [[r_utils.mean_kt_distance([row[j] for row in L], dataset.Y) for j in range(m)]]
 

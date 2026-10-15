@@ -22,7 +22,8 @@ class ColumnarRankingDataset:
 
     ``data_conf`` keys: ``project_root``, ``raw_data_path``, ``processed_data_path``, ``features``,
     ``label_feature``, ``highest_first``, ``n_train``, ``n_test``, ``dimension``, ``seed``,
-    ``recreate_if_exists`` and optionally ``tiered`` (one item per label quantile).
+    ``recreate_if_exists`` and optionally ``tiered`` (one item per label quantile) and ``legacy_sampling``
+    (reproduce the original code's item sets exactly: same seed, same samples).
     """
 
     id_feature = "id"
@@ -62,11 +63,15 @@ class ColumnarRankingDataset:
             print("Generate samples...")
             self.lst_id_train, self.lst_id_test = train_test_split(
                 self.lst_id, train_size=self.n_train / self.n, random_state=self.seed)
-            rng = np.random.default_rng(self.seed)
+            if self.data_conf.get("legacy_sampling"):
+                # the original code reseeded the global NumPy RNG with `seed` before each split
+                rng_train, rng_test = np.random.RandomState(self.seed), np.random.RandomState(self.seed)
+            else:
+                rng_train = rng_test = np.random.default_rng(self.seed)
             (self.X_train, self.Y_train, self.lst_feature_map_train,
-             self.lst_ref_map_train) = self._create_samples(self.lst_id_train, self.n_train, rng)
+             self.lst_ref_map_train) = self._create_samples(self.lst_id_train, self.n_train, rng_train)
             (self.X_test, self.Y_test, self.lst_feature_map_test,
-             self.lst_ref_map_test) = self._create_samples(self.lst_id_test, self.n_test, rng)
+             self.lst_ref_map_test) = self._create_samples(self.lst_id_test, self.n_test, rng_test)
             os.makedirs(self.processed_data_path, exist_ok=True)
             with open(sample_path, "wb") as f:
                 pickle.dump({k: getattr(self, k) for k in _SAMPLE_KEYS}, f)
@@ -76,7 +81,7 @@ class ColumnarRankingDataset:
         self.lst_feature_map = self.lst_feature_map_train + self.lst_feature_map_test
         self.lst_ref_map = self.lst_ref_map_train + self.lst_ref_map_test
 
-    def _create_samples(self, ids, n: int, rng: np.random.Generator):
+    def _create_samples(self, ids, n: int, rng):
         bd = self.base_dataset
         ids = np.asarray(ids)
         if self.tiered:

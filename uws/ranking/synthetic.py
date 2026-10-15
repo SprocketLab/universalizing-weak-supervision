@@ -72,14 +72,21 @@ def sample_mallows_LFs(Y: Sequence[Ranking], m: int, thetas, p: Optional[float] 
 
 def generate_synthetic_LFs(Y, m: int, seed: Optional[int] = None, good_ratio: float = 1 / 3,
                            p: Optional[float] = None, good_min_theta: float = 2, good_max_theta: float = 5,
-                           bad_min_theta: float = 0.001, bad_max_theta: float = 0.01, sampler: str = "rim"):
-    """A mix of accurate (``good_ratio``) and near-random Mallows LFs, thetas sorted ascending."""
+                           bad_min_theta: float = 0.001, bad_max_theta: float = 0.01, sampler: str = "rim",
+                           legacy_thetas: bool = False, return_thetas: bool = False):
+    """A mix of accurate (``good_ratio``) and near-random Mallows LFs, thetas sorted ascending.
+
+    ``legacy_thetas`` draws the thetas exactly as the original code did (``np.random.seed(seed)``, then
+    ``np.random.uniform``), so the same seed gives the same thetas.
+    """
     assert len(Y) != 0, "True label Y is empty"
     rng = np.random.default_rng(seed)
     m_good = int(m * good_ratio)
-    thetas = np.sort(np.concatenate([rng.uniform(good_min_theta, good_max_theta, m_good),
-                                     rng.uniform(bad_min_theta, bad_max_theta, m - m_good)]))
-    return sample_mallows_LFs(Y, m, thetas, p, sampler=sampler, rng=rng)
+    theta_rng = np.random.RandomState(seed) if legacy_thetas else rng
+    thetas = np.sort(np.concatenate([theta_rng.uniform(good_min_theta, good_max_theta, m_good),
+                                     theta_rng.uniform(bad_min_theta, bad_max_theta, m - m_good)]))
+    L = sample_mallows_LFs(Y, m, thetas, p, sampler=sampler, rng=rng)
+    return (L, thetas) if return_thetas else L
 
 
 def estimate_theta(L, train_method: str = "triplet_opt") -> np.ndarray:

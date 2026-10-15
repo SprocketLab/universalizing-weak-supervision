@@ -46,6 +46,7 @@ class Mallows:
         self.dist_counts = dist_counts
         self.dist_probs = dist_probs / dist_probs.sum()
         self._perm_dict_center = None
+        self._pos_dict = None
         self.dict_dist_perm = None
 
     # ------------------------------------------------------------------ sampling
@@ -75,10 +76,13 @@ class Mallows:
         p = self.rank_utils.num_pairs
         f = int(np.nonzero(self.rng.multinomial(1, self.dist_probs))[0][0])
         if len(center_pi) < 10:
-            if self._perm_dict_center != center_pi.permutation:
-                self.build_perm_dict(center_pi)
-            perms = self.dict_dist_perm[f]
-            best_s = perms[self.rng.integers(len(perms))]
+            # uniform over permutations at distance f: precomputed once as position permutations of the
+            # identity (inversion count), then relabeled with the center (distances are relabeling-invariant)
+            if self._pos_dict is None or len(next(iter(self._pos_dict.values()))[0]) != len(center_pi):
+                self._pos_dict = self._inversion_dict(len(center_pi))
+            perms = self._pos_dict[f]
+            sigma = perms[self.rng.integers(len(perms))]
+            best_s = [center_pi.permutation[i] for i in sigma]
         else:
             center = center_pi
             if f > p / 2:
@@ -90,6 +94,14 @@ class Mallows:
         best_s = Ranking(best_s, self.rank_utils)
         err = abs(f - self.rank_utils.kendall_tau_distance(best_s, center_pi))
         return best_s, float(err), f
+
+    @staticmethod
+    def _inversion_dict(d: int) -> dict:
+        out = defaultdict(list)
+        for perm in itertools.permutations(range(d)):
+            inv = sum(perm[i] > perm[j] for i in range(d) for j in range(i + 1, d))
+            out[inv].append(perm)
+        return out
 
     def build_perm_dict(self, center_pi: Ranking):
         dict_dist_perm = defaultdict(list)
