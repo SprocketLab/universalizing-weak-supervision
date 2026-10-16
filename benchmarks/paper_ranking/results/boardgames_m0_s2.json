@@ -1,0 +1,35 @@
+[
+ {
+  "dataset": "boardgames",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_20",
+  "weak_kt": null,
+  "test_tau": 0.17350000143051147,
+  "test_ndcg1": 0.8240000009536743,
+  "test_ndcg5": 0.9405397772789001,
+  "seconds": 148.26461815834045
+ },
+ {
+  "dataset": "boardgames",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_50",
+  "weak_kt": null,
+  "test_tau": 0.15989995002746582,
+  "test_ndcg1": 0.8362500071525574,
+  "test_ndcg5": 0.9457906484603882,
+  "seconds": 256.5571572780609
+ },
+ {
+  "dataset": "boardgames",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_100",
+  "weak_kt": null,
+  "test_tau": 0.1613999903202057,
+  "test_ndcg1": 0.8397499918937683,
+  "test_ndcg5": 0.9462356567382812,
+  "seconds": 463.92193388938904
+ }
+]

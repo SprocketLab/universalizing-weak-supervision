@@ -1,0 +1,35 @@
+[
+ {
+  "dataset": "movies",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_20",
+  "weak_kt": null,
+  "test_tau": 0.23399999737739563,
+  "test_ndcg1": 0.8054999709129333,
+  "test_ndcg5": 0.9257668852806091,
+  "seconds": 103.01867842674255
+ },
+ {
+  "dataset": "movies",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_50",
+  "weak_kt": null,
+  "test_tau": 0.21390002965927124,
+  "test_ndcg1": 0.815750002861023,
+  "test_ndcg5": 0.9318636059761047,
+  "seconds": 186.6468997001648
+ },
+ {
+  "dataset": "movies",
+  "seed": 2,
+  "m": 0,
+  "method": "sup_100",
+  "weak_kt": null,
+  "test_tau": 0.2224999964237213,
+  "test_ndcg1": 0.8125,
+  "test_ndcg5": 0.9291900992393494,
+  "seconds": 331.4468147754669
+ }
+]

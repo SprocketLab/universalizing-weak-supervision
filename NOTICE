@@ -1,0 +1,5 @@
+Universalizing Weak Supervision
+Copyright 2021-2026 Changho Shin, Winfred Li, Harit Vishwakarma, Nicholas Roberts, Frederic Sala
+
+This product includes a modified copy of PT-Ranking (https://github.com/wildltr/ptranking),
+Copyright (c) 2018 pt-ranking, distributed under the MIT License (see uws/_vendor/ptranking/LICENSE).

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^(uws/_vendor/|tutorials/)
+      - id: trailing-whitespace
+        exclude: ^(uws/_vendor/|tutorials/)
+      - id: check-added-large-files
+        args: [--maxkb=2000]
+        exclude: ^data/
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout
+        args: [--keep-output]
