@@ -44,16 +44,18 @@ accuracy estimates.
 ## Installation
 
 ```bash
-pip install uws
+pip install universalizing-weak-supervision
 ```
+
+The PyPI distribution is `universalizing-weak-supervision`; the Python import remains `uws`.
 
 Optional parts need extra dependencies:
 
 ```bash
-pip install "uws[l2r]"        # ranking end model (torch)
-pip install "uws[geodesic]"   # manifold-valued labels (torch, geoopt)
-pip install "uws[binary]"     # FlyingSquid binary label model
-pip install "uws[all]"        # everything, including the Snorkel baseline
+pip install "universalizing-weak-supervision[l2r]"        # ranking end model (torch)
+pip install "universalizing-weak-supervision[geodesic]"   # manifold-valued labels (torch, geoopt)
+pip install "universalizing-weak-supervision[binary]"     # FlyingSquid binary label model
+pip install "universalizing-weak-supervision[all]"        # everything, including the Snorkel baseline
 ```
 
 To install from source and run the tests:

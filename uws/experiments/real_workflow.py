@@ -28,7 +28,7 @@ def snorkel_rankings(L, r_utils: RankingUtils, n_epochs: int = 500, seed: int = 
     try:
         from snorkel.labeling.model import LabelModel
     except ImportError as e:  # pragma: no cover
-        raise ImportError("The snorkel baseline needs `pip install uws[snorkel]`") from e
+        raise ImportError("The snorkel baseline needs `pip install universalizing-weak-supervision[snorkel]`") from e
     r_utils.set_perm2int_int2perm_mapping()
     L_int = np.array([r_utils.perm2int(row) for row in L])
     label_model = LabelModel(cardinality=math.factorial(r_utils.d), verbose=False)

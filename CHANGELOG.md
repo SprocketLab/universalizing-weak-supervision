@@ -3,7 +3,7 @@
 ## 1.0.0 (2026-10)
 
 First packaged release. The research code under `code/` and `uws/label_model.py` has been reorganized into
-the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials/` and import `uws`.
+the installable `uws` package (`pip install universalizing-weak-supervision`). Notebooks moved to `tutorials/` and import `uws`.
 
 ### Package layout
 - All label models live in `uws.label_model`: `RankingLabelModel`, `ContinuousLabelModel`, `MetricLabelModel`,
@@ -13,6 +13,7 @@ the installable `uws` package (`pip install uws`). Notebooks moved to `tutorials
   and rank aggregation.
 
 ### Packaging
+- The PyPI distribution is `universalizing-weak-supervision`; Python imports remain `uws`.
 - `pyproject.toml`, optional extras (`l2r`, `geodesic`, `binary`, `snorkel`, `all`, `dev`, `docs`), Apache-2.0.
 - Vendored Snorkel removed (it was an unmodified 0.9.6 copy); the baseline now uses `pip install snorkel`.
 - The modified PT-Ranking fork is vendored as `uws._vendor.ptranking`.

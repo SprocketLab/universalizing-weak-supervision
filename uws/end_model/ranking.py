@@ -13,7 +13,7 @@ def _torch():
     try:
         import torch
     except ImportError as e:  # pragma: no cover
-        raise ImportError("RankingEndModel needs `pip install uws[l2r]` (torch)") from e
+        raise ImportError("RankingEndModel needs `pip install universalizing-weak-supervision[l2r]` (torch)") from e
     return torch
 
 
@@ -52,7 +52,8 @@ class RankingEndModel:
 
     The network is the one used in the paper's experiments: ``num_layers`` linear layers of width
     ``hidden_dim`` with ReLU, where the input features and every hidden layer are normalized over the items of
-    each query (item set). It is trained with the ListMLE loss and SGD. Requires ``uws[l2r]`` (torch).
+    each query (item set). It is trained with the ListMLE loss and SGD.
+    Requires ``universalizing-weak-supervision[l2r]`` (torch).
 
     The defaults train on 16 queries per step. ``batch_size=1, lr=0.01`` is the paper's exact schedule (one
     query per step); on the board-games data both reach the same test Kendall distance (about 0.16) and the

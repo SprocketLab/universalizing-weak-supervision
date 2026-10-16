@@ -1,4 +1,4 @@
-"""Binary label model: a thin wrapper around FlyingSquid (requires ``uws[binary]``)."""
+"""Binary label model: a thin wrapper around FlyingSquid (requires ``universalizing-weak-supervision[binary]``)."""
 
 
 def BinaryLabelModel(m: int, **kwargs):
@@ -6,7 +6,9 @@ def BinaryLabelModel(m: int, **kwargs):
     try:
         from flyingsquid.label_model import LabelModel
     except ImportError as e:  # pragma: no cover
-        raise ImportError("BinaryLabelModel needs `pip install uws[binary]` (flyingsquid, pgmpy)") from e
+        raise ImportError(
+            "BinaryLabelModel needs `pip install universalizing-weak-supervision[binary]` (flyingsquid, pgmpy)"
+        ) from e
     return LabelModel(m, **kwargs)
 
 

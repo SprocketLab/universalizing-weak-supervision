@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "uws"
+name = "universalizing-weak-supervision"
 dynamic = ["version"]
 description = "Universalizing Weak Supervision: label models for rankings, regression, manifolds and any metric space"
 readme = "README.md"
@@ -35,7 +35,7 @@ l2r = ["torch>=1.13"]
 geodesic = ["torch>=1.13", "geoopt>=0.5"]
 binary = ["flyingsquid", "pgmpy"]
 snorkel = ["snorkel>=0.9.9"]
-all = ["uws[l2r,geodesic,snorkel]"]
+all = ["universalizing-weak-supervision[l2r,geodesic,snorkel]"]
 dev = ["pytest>=7", "pytest-cov", "ruff>=0.4", "mypy>=1.5", "build", "twine", "pre-commit", "networkx"]
 docs = ["sphinx>=7", "furo", "myst-parser", "sphinx-autodoc-typehints"]
 tutorials = ["jupyter", "matplotlib", "networkx"]

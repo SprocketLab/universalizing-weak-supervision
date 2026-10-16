@@ -6,8 +6,8 @@ Every model follows the same interface (:class:`BaseLabelModel`): ``fit(L)``, ``
 * :class:`RankingLabelModel`: full and partial rankings (Mallows LFs).
 * :class:`ContinuousLabelModel`: real-valued labels (Gaussian LFs).
 * :class:`MetricLabelModel`: labels in any finite metric space.
-* :class:`GeodesicLabelModel`: labels on a Riemannian manifold (needs ``uws[geodesic]``).
-* :func:`BinaryLabelModel`: binary labels through FlyingSquid (needs ``uws[binary]``).
+* :class:`GeodesicLabelModel`: labels on a Riemannian manifold (needs ``universalizing-weak-supervision[geodesic]``).
+* :func:`BinaryLabelModel`: binary labels through FlyingSquid (needs ``universalizing-weak-supervision[binary]``).
 """
 
 from ..config import InferenceRule, RankingConfig, TrainMethod

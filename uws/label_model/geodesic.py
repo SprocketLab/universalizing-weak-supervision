@@ -15,7 +15,9 @@ def _require_geoopt():
         import geoopt  # noqa: F401
         import torch  # noqa: F401
     except ImportError as e:  # pragma: no cover
-        raise ImportError("The geodesic label model needs `pip install uws[geodesic]` (torch, geoopt)") from e
+        raise ImportError(
+            "The geodesic label model needs `pip install universalizing-weak-supervision[geodesic]` (torch, geoopt)"
+        ) from e
 
 
 class GeodesicLabelModel(BaseLabelModel):
